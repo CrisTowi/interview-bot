@@ -60,9 +60,28 @@ function validate(body: unknown): ChatRequest | string {
   return b as ChatRequest;
 }
 
+function upstreamMessage(data: any, status: number): string {
+  const err = data?.error;
+  let message: string = err?.message ?? `Provider error (HTTP ${status})`;
+  // OpenRouter wraps the underlying provider's error in metadata.raw; without it the message is just "Provider returned error".
+  const raw = err?.metadata?.raw;
+  if (raw) {
+    let detail = typeof raw === 'string' ? raw : JSON.stringify(raw);
+    try {
+      const parsed = JSON.parse(detail);
+      detail = parsed?.error?.message ?? parsed?.message ?? detail;
+    } catch {
+      // Not JSON: use it as is.
+    }
+    message += `: ${String(detail).slice(0, 300)}`;
+  }
+  if (err?.metadata?.provider_name) message += ` (${err.metadata.provider_name})`;
+  return message;
+}
+
 async function readJson(res: Response): Promise<any> {
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new UpstreamError(res.status, data?.error?.message ?? `Provider error (HTTP ${res.status})`);
+  if (!res.ok) throw new UpstreamError(res.status, upstreamMessage(data, res.status));
   return data;
 }
 
@@ -75,7 +94,7 @@ async function callChatCompletions(
   const res = await fetch(url, {
     method: 'POST',
     headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json', ...extraHeaders },
-    body: JSON.stringify({ model, messages: [{ role: 'system', content: system }, ...messages] }),
+    body: JSON.stringify({ model, messages: system ? [{ role: 'system', content: system }, ...messages] : messages }),
   });
   const data = await readJson(res);
   return data.choices?.[0]?.message?.content ?? '';
@@ -83,9 +102,25 @@ async function callChatCompletions(
 
 const callOpenAI = (req: ChatRequest) => callChatCompletions('https://api.openai.com/v1/chat/completions', req);
 
-// X-Title only labels the app in the user's own OpenRouter dashboard.
-const callOpenRouter = (req: ChatRequest) =>
-  callChatCompletions('https://openrouter.ai/api/v1/chat/completions', req, { 'x-title': 'interview-bot' });
+async function callOpenRouter(req: ChatRequest): Promise<string> {
+  const url = 'https://openrouter.ai/api/v1/chat/completions';
+  // X-Title only labels the app in the user's own OpenRouter dashboard.
+  const headers = { 'x-title': 'interview-bot' };
+  try {
+    return await callChatCompletions(url, req, headers);
+  } catch (err) {
+    // Some models (e.g. Gemma on Google AI Studio) reject system prompts. Retry once with the
+    // instructions folded into the first user message; if that fails too, report the original error.
+    if (!(err instanceof UpstreamError) || err.status !== 400 || req.messages[0]?.role !== 'user') throw err;
+    const [first, ...rest] = req.messages;
+    const folded = { ...req, system: '', messages: [{ role: 'user' as const, content: `${req.system}\n\n${first.content}` }, ...rest] };
+    try {
+      return await callChatCompletions(url, folded, headers);
+    } catch {
+      throw err;
+    }
+  }
+}
 
 async function callAnthropic({ apiKey, model, system, messages }: ChatRequest): Promise<string> {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
