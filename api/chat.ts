@@ -13,7 +13,7 @@ interface Message {
   content: string;
 }
 interface ChatRequest {
-  provider: 'openai' | 'anthropic' | 'gemini';
+  provider: 'openai' | 'anthropic' | 'gemini' | 'openrouter';
   apiKey: string;
   model: string;
   system: string;
@@ -42,7 +42,7 @@ function json(body: unknown, status = 200): Response {
 function validate(body: unknown): ChatRequest | string {
   const b = body as Partial<ChatRequest> | null;
   if (!b || typeof b !== 'object') return 'Invalid body';
-  if (!['openai', 'anthropic', 'gemini'].includes(b.provider as string)) return 'Unknown provider';
+  if (!['openai', 'anthropic', 'gemini', 'openrouter'].includes(b.provider as string)) return 'Unknown provider';
   if (typeof b.apiKey !== 'string' || !b.apiKey.trim()) return 'Missing API key';
   if (typeof b.model !== 'string' || !b.model.trim()) return 'Missing model';
   if (typeof b.system !== 'string') return 'Missing system prompt';
@@ -66,15 +66,26 @@ async function readJson(res: Response): Promise<any> {
   return data;
 }
 
-async function callOpenAI({ apiKey, model, system, messages }: ChatRequest): Promise<string> {
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+/** OpenAI's Chat Completions format, which OpenRouter also speaks. */
+async function callChatCompletions(
+  url: string,
+  { apiKey, model, system, messages }: ChatRequest,
+  extraHeaders: Record<string, string> = {},
+): Promise<string> {
+  const res = await fetch(url, {
     method: 'POST',
-    headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+    headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json', ...extraHeaders },
     body: JSON.stringify({ model, messages: [{ role: 'system', content: system }, ...messages] }),
   });
   const data = await readJson(res);
   return data.choices?.[0]?.message?.content ?? '';
 }
+
+const callOpenAI = (req: ChatRequest) => callChatCompletions('https://api.openai.com/v1/chat/completions', req);
+
+// X-Title only labels the app in the user's own OpenRouter dashboard.
+const callOpenRouter = (req: ChatRequest) =>
+  callChatCompletions('https://openrouter.ai/api/v1/chat/completions', req, { 'x-title': 'interview-bot' });
 
 async function callAnthropic({ apiKey, model, system, messages }: ChatRequest): Promise<string> {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -103,7 +114,7 @@ async function callGemini({ apiKey, model, system, messages }: ChatRequest): Pro
   return (data.candidates?.[0]?.content?.parts ?? []).map((p: any) => p.text ?? '').join('');
 }
 
-const PROVIDERS = { openai: callOpenAI, anthropic: callAnthropic, gemini: callGemini };
+const PROVIDERS = { openai: callOpenAI, anthropic: callAnthropic, gemini: callGemini, openrouter: callOpenRouter };
 
 export async function POST(req: Request): Promise<Response> {
   const body = await req.json().catch(() => null);

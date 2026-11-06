@@ -9,7 +9,7 @@ const COMPANIES = (['Amazon', 'Google', 'Meta', 'Startup'] as const).map((v) => 
   label: v === 'Startup' ? 'una startup' : v,
 }));
 const FOCUSES = (Object.keys(FOCUS_LABELS) as Focus[]).map((v) => ({ value: v, label: FOCUS_LABELS[v] }));
-const PROVIDER_LABELS = { openai: 'OpenAI', anthropic: 'Anthropic', gemini: 'Gemini' };
+const PROVIDER_LABELS = { openai: 'OpenAI', anthropic: 'Anthropic', gemini: 'Gemini', openrouter: 'OpenRouter' };
 
 interface Props {
   onStart: () => void;

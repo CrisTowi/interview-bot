@@ -14,7 +14,7 @@ export interface Profile {
   lang: Lang;
 }
 
-export type CloudProvider = 'openai' | 'anthropic' | 'gemini';
+export type CloudProvider = 'openai' | 'anthropic' | 'gemini' | 'openrouter';
 export type TtsProvider = 'openai' | 'elevenlabs';
 
 export interface Settings {

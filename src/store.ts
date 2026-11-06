@@ -6,6 +6,7 @@ export const DEFAULT_MODELS: Record<CloudProvider, string> = {
   openai: 'gpt-5-mini',
   anthropic: 'claude-sonnet-5-5',
   gemini: 'gemini-flash-latest',
+  openrouter: 'anthropic/claude-sonnet-5.5',
 };
 
 export const DEFAULT_VOICES: Record<TtsProvider, string> = {

@@ -13,6 +13,7 @@ const ENGINES = [
   { value: 'openai' as EngineChoice, label: 'OpenAI (tu API key)' },
   { value: 'anthropic' as EngineChoice, label: 'Anthropic (tu API key)' },
   { value: 'gemini' as EngineChoice, label: 'Gemini (tu API key)' },
+  { value: 'openrouter' as EngineChoice, label: 'OpenRouter (tu API key)' },
 ];
 const VOICES = [
   { value: 'native' as VoiceChoice, label: 'Voz del navegador' },
@@ -28,6 +29,7 @@ const KEY_LINKS: Record<CloudProvider | TtsProvider, string> = {
   openai: 'https://platform.openai.com/api-keys',
   anthropic: 'https://console.anthropic.com/settings/keys',
   gemini: 'https://aistudio.google.com/apikey',
+  openrouter: 'https://openrouter.ai/settings/keys',
   elevenlabs: 'https://elevenlabs.io/app/settings/api-keys',
 };
 const LOCAL_STATUS_TEXT = {
