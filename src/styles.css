@@ -879,12 +879,104 @@ textarea:focus,
 .summary li + li {
   margin-top: 4px;
 }
-.waiting {
+/* Empty, loading and error states: a prompt to act, not a dead end. */
+.summary.state {
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+}
+.state h2 {
+  font-size: clamp(1.7rem, 5vw, 2.3rem);
+  text-wrap: balance;
+}
+.state-mascot {
+  width: 96px;
+  height: 96px;
+  filter: drop-shadow(0 10px 24px rgb(0 0 0 / 0.18));
+}
+.state-mascot.thinking {
+  animation: bob 1.8s ease-in-out infinite;
+}
+.state-text {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--muted);
+}
+.state-text.error {
+  color: var(--danger);
+}
+
+.pending-question {
+  margin: 0;
+  width: 100%;
+  padding: 18px 22px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+}
+.pending-question figcaption {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.pending-question blockquote {
+  margin: 0;
+  font: 400 1.2rem/1.5 var(--serif);
+}
+
+.star-guide {
+  width: 100%;
+  text-align: left;
+}
+.star-guide h3 {
+  text-align: center;
+}
+.star-guide ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+@media (max-width: 600px) {
+  .star-guide ol {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.star-guide li {
+  margin: 0;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 16px;
-  font: 400 1.25rem var(--serif);
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-size: 0.88rem;
+}
+.star-guide li span:last-child {
+  color: var(--muted);
+}
+.star-letter {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  background: #f2b544;
+  color: #1c1c1a;
+  font: 600 1rem var(--serif);
+}
+
+@keyframes bob {
+  50% {
+    transform: translateY(-6px) rotate(-3deg);
+  }
 }
 
 /* ---------- Motion ---------- */
@@ -1242,4 +1334,7 @@ code {
 /* Options read lowercase inside the sentence but as titles in the menu. */
 .picker-label::first-letter {
   text-transform: uppercase;
+}
+.star-guide li + li {
+  margin-top: 0;
 }

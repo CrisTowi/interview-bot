@@ -41,6 +41,32 @@ function verdictIndex(verdict: string, score: number): number {
 
 const tone = (index: number) => (index <= 1 ? 'low' : index === 2 ? 'mid' : 'good');
 
+const STAR_STEPS = [
+  { letter: 'S', title: 'Situación', text: 'El contexto, en una o dos frases.' },
+  { letter: 'T', title: 'Tarea', text: 'Qué te tocaba resolver a ti.' },
+  { letter: 'A', title: 'Acción', text: 'Lo que hiciste tú, no el equipo.' },
+  { letter: 'R', title: 'Resultado', text: 'Qué cambió, idealmente con números.' },
+];
+
+function StarGuide() {
+  return (
+    <section className="star-guide" aria-label="Método STAR">
+      <h3>Cómo responder: el método STAR</h3>
+      <ol>
+        {STAR_STEPS.map((step) => (
+          <li key={step.letter}>
+            <span className="star-letter" aria-hidden="true">
+              {step.letter}
+            </span>
+            <strong>{step.title}</strong>
+            <span>{step.text}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 export function Summary({ existing, transcript, onHome, onRetry }: Props) {
   const { profile, settings, addSummary } = useApp();
   const [summary, setSummary] = useState<SessionSummary | undefined>(existing);
@@ -81,27 +107,67 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
   }, []);
 
   if (!summary) {
+    const pendingQuestion = [...(transcript ?? [])].reverse().find((m) => m.role === 'assistant')?.content;
+
+    if (!answered) {
+      return (
+        <main className="summary state">
+          <img className="state-mascot" src="/favicon.svg" alt="" width={96} height={96} />
+          <h2>Colgaste antes de responder</h2>
+          <p className="state-text">
+            Todavía no hay nada que evaluar. Cuando estés listo, vuelve a intentarlo: responde hablando o escribiendo, y
+            termina cuando quieras para ver tu resultado.
+          </p>
+
+          {pendingQuestion && (
+            <figure className="pending-question">
+              <figcaption>La pregunta que quedó pendiente</figcaption>
+              <blockquote>{pendingQuestion}</blockquote>
+            </figure>
+          )}
+
+          <StarGuide />
+
+          <div className="summary-actions">
+            <button className="primary" onClick={onRetry}>
+              Intentar de nuevo
+            </button>
+            <button className="secondary" onClick={onHome}>
+              Volver al inicio
+            </button>
+          </div>
+        </main>
+      );
+    }
+
     return (
-      <main className="summary">
-        <section className="waiting">
-          {!answered ? (
-            <p>La entrevista terminó antes de que respondieras. No hay nada que evaluar.</p>
-          ) : error ? (
-            <>
-              <p className="error">{error}</p>
+      <main className="summary state">
+        <img className={error ? 'state-mascot' : 'state-mascot thinking'} src="/favicon.svg" alt="" width={96} height={96} />
+        {error ? (
+          <>
+            <h2>No pudimos generar tu evaluación</h2>
+            <p className="state-text error">{error}</p>
+            <p className="state-text">Tu entrevista no se perdió: puedes reintentar ahora o cambiar de modelo en Ajustes.</p>
+            <div className="summary-actions">
               <button className="primary" onClick={evaluate}>
                 Reintentar
               </button>
-            </>
-          ) : (
-            <p>
-              <span className="dots" /> El comité está revisando tu entrevista…
+              <button className="secondary" onClick={onHome}>
+                Volver al inicio
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h2>
+              El comité está revisando tu entrevista <span className="dots" />
+            </h2>
+            <p className="state-text">
+              Está evaluando la estructura de tus respuestas, qué hiciste tú y el impacto que contaste. Tarda unos segundos.
             </p>
-          )}
-          <button className="link" onClick={onHome}>
-            Volver al inicio
-          </button>
-        </section>
+            <StarGuide />
+          </>
+        )}
       </main>
     );
   }
