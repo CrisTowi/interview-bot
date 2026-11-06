@@ -1470,3 +1470,122 @@ code {
 .sync-summary .dot {
   transform: translateY(-1px);
 }
+
+/* ---------- Profile card: CV / LinkedIn briefing ---------- */
+
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.profile-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.profile-head h2 {
+  font-size: 1.3rem;
+}
+.profile-source {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.profile-lead {
+  margin: 0;
+  color: var(--muted);
+}
+.profile-step {
+  margin: 0;
+  font: 400 1.1rem var(--serif);
+}
+.profile-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+@media (max-width: 600px) {
+  .profile-options {
+    grid-template-columns: 1fr;
+  }
+}
+.option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+}
+.option:hover {
+  border-color: var(--accent);
+}
+.option span {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.profile-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.profile-panel .row {
+  align-items: center;
+}
+.linkedin-steps {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.briefing {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--accent);
+  background: var(--paper);
+  border-radius: 0 10px 10px 0;
+}
+.briefing p {
+  margin: 0;
+  font-size: 0.92rem;
+}
+.briefing strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+.briefing strong::after {
+  content: ':';
+}
+.briefing-editor {
+  font-size: 0.92rem;
+}
+.profile-actions {
+  display: flex;
+  gap: 16px;
+}
+.profile-actions .muted-link {
+  color: var(--muted);
+}
+.profile-notes summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.profile-notes[open] summary {
+  margin-bottom: 10px;
+}
+.profile-notes textarea {
+  margin-bottom: 8px;
+}

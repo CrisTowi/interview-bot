@@ -22,6 +22,7 @@ const defaultProfile: Profile = {
   company: 'Amazon',
   focus: 'mixed',
   background: '',
+  cvSummary: '',
   salary: '',
   lang: 'es',
 };

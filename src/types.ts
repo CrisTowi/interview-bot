@@ -8,8 +8,11 @@ export interface Profile {
   seniority: Seniority;
   company: Company;
   focus: Focus;
-  /** Free-form background the interviewer can draw on (years, domain, team size…). */
+  /** Free-form notes the interviewer can draw on (years, domain, team size…). */
   background: string;
+  /** Briefing distilled from the candidate's CV or LinkedIn PDF (the file itself is never stored). */
+  cvSummary: string;
+  cvSource?: { name: string; date: string };
   salary: string;
   lang: Lang;
 }

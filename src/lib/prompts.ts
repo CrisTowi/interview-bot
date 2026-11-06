@@ -49,6 +49,9 @@ export function buildSystemPrompt(p: Profile, history: SessionSummary[], intervi
     `You are ${interviewerName}, a senior interviewer at ${p.company}, running a realistic behavioral interview for a ${p.seniority} ${p.role} position over a video call.`,
     COMPANY_GUIDE[p.company],
     FOCUS_GUIDE[p.focus],
+    p.cvSummary?.trim()
+      ? `Candidate's background, summarized from their CV/LinkedIn:\n${p.cvSummary.trim()}\nUse it to ask about specific roles and projects from their history, and notice when a story doesn't match it. Never recite it back.`
+      : null,
     p.background.trim() ? `What the candidate shared about themselves: ${p.background.trim()}` : null,
     p.salary.trim() ? `Candidate's salary expectation: ${p.salary}. Expect the scope of impact that compensation implies.` : null,
     '',
@@ -84,7 +87,7 @@ export const DIMENSIONS: Dimension[] = ['structure', 'specificity', 'ownership',
 
 export function buildSummaryPrompt(p: Profile): string {
   return `You are a member of a ${p.company} hiring committee. Evaluate the candidate in the following behavioral interview for a ${p.seniority} ${p.role} position.
-Be honest and specific: quote or paraphrase what the candidate actually said. Address the candidate directly as "you".
+${p.cvSummary?.trim() ? `Candidate's background (from their CV), to judge whether their stories match their level:\n${p.cvSummary.trim()}\n` : ''}Be honest and specific: quote or paraphrase what the candidate actually said. Address the candidate directly as "you".
 Reply ONLY with a JSON object, no other text. Write all text fields in ${LANGUAGE[p.lang]}. Shape:
 {
   "score": <integer 1-10>,

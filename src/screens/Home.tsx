@@ -1,4 +1,5 @@
 import { InlinePicker, type PickerOption } from '../components/InlinePicker';
+import { ProfileCard } from '../components/ProfileCard';
 import { ScoreBadge, useEngineReady } from '../components/ui';
 import { FOCUS_LABELS, focusTitle } from '../lib/prompts';
 import { APP_NAME, useDocumentTitle } from '../lib/title';
@@ -91,21 +92,7 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
         </p>
       </div>
 
-      <details className="context">
-        <summary>Cuéntale al entrevistador sobre ti</summary>
-        <textarea
-          rows={3}
-          value={profile.background}
-          onChange={(e) => setProfile({ background: e.target.value })}
-          placeholder="Ej.: 6 años en fintech, lidero un equipo de 4, migré nuestro monolito a microservicios."
-        />
-        <input
-          value={profile.salary}
-          onChange={(e) => setProfile({ salary: e.target.value })}
-          placeholder="Expectativa salarial (opcional)"
-          aria-label="Expectativa salarial"
-        />
-      </details>
+      <ProfileCard onOpenSettings={onOpenSettings} />
 
       {history.length > 0 && (
         <section className="history">
