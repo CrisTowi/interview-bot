@@ -1433,33 +1433,6 @@ code {
   color: var(--muted);
 }
 
-/* Collapsible sync header: a one-line status, details on demand. */
-.sync-toggle {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  text-align: left;
-}
-.sync-toggle-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: var(--muted);
-}
-.sync-toggle-top svg {
-  transition: transform 150ms ease;
-}
-.sync-toggle[aria-expanded='true'] .sync-toggle-top svg {
-  transform: rotate(180deg);
-}
-.sync-toggle:hover .sync-toggle-top {
-  color: var(--ink);
-}
 .sync-summary {
   display: flex;
   align-items: baseline;
@@ -1588,4 +1561,63 @@ code {
 }
 .profile-notes textarea {
   margin-bottom: 8px;
+}
+
+/* ---------- Settings overview (two levels) ---------- */
+
+.overview-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 8px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  border-radius: 0;
+}
+.overview-row:hover {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+.overview-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.overview-title {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.overview-value {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+.overview-value .dot {
+  transform: translateY(-1px);
+}
+.overview-chevron {
+  flex: none;
+  color: var(--muted);
+}
+.view-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 8px 4px;
+}
+.view-head h3 {
+  margin: 0;
+  font: 500 1.25rem var(--serif);
+}
+.view-head .back {
+  align-self: flex-start;
+  font-size: 0.85rem;
+  text-decoration: none;
 }
