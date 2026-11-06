@@ -1669,3 +1669,15 @@ code {
     clip-path: inset(50%);
   }
 }
+
+/* Narrow screens: menus span the screen instead of hanging off their button, so they never overflow. */
+@media (max-width: 600px) {
+  .menu {
+    position: fixed;
+    top: 60px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-height: calc(100dvh - 76px);
+  }
+}
