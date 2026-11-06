@@ -1,5 +1,4 @@
 import { InlinePicker, type PickerOption } from '../components/InlinePicker';
-import { ProfileCard } from '../components/ProfileCard';
 import { ScoreBadge, useEngineReady } from '../components/ui';
 import { FOCUS_LABELS, focusTitle } from '../lib/prompts';
 import { APP_NAME, useDocumentTitle } from '../lib/title';
@@ -92,7 +91,6 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
         </p>
       </div>
 
-      <ProfileCard onOpenSettings={onOpenSettings} />
 
       {history.length > 0 && (
         <section className="history">

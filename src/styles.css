@@ -1473,20 +1473,20 @@ code {
 
 /* ---------- Profile card: CV / LinkedIn briefing ---------- */
 
-/* Collapsed by default: one status line under the start button, details on demand. */
+/* Lives in the "Perfil" top-bar dropdown. */
 .profile-card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
+  gap: 12px;
+  padding: 12px 8px;
 }
-.profile-card .sync-summary {
-  color: var(--muted);
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-.profile-card .briefing,
-.profile-card .option {
-  background: var(--surface);
+.menu-anchor .ghost .dot {
+  margin-right: 2px;
 }
 .profile-head {
   display: flex;
@@ -1512,13 +1512,7 @@ code {
 }
 .profile-options {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-@media (max-width: 600px) {
-  .profile-options {
-    grid-template-columns: 1fr;
-  }
+  gap: 8px;
 }
 .option {
   display: flex;

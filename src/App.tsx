@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { ProfileMenu } from './components/ProfileCard';
 import { SettingsMenu } from './components/SettingsMenu';
 import { Home } from './screens/Home';
 import { Interview } from './screens/Interview';
@@ -14,8 +15,9 @@ type Screen =
 
 export function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
-  const [menuOpen, setMenuOpen] = useState(false);
-  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const [menu, setMenu] = useState<'profile' | 'settings' | null>(null);
+  const closeMenu = useCallback(() => setMenu(null), []);
+  const toggle = (name: 'profile' | 'settings') => () => setMenu((m) => (m === name ? null : name));
   const home = () => setScreen({ name: 'home' });
 
   // Pull the encrypted copy from Nostr relays (if an identity is connected) and keep it in sync.
@@ -32,14 +34,22 @@ export function App() {
             <img src="/favicon.svg" alt="" width={30} height={30} />
             {APP_NAME}
           </button>
-          <SettingsMenu open={menuOpen} onToggle={() => setMenuOpen((o) => !o)} onClose={closeMenu} />
+          <div className="topbar-actions">
+            <ProfileMenu
+              open={menu === 'profile'}
+              onToggle={toggle('profile')}
+              onClose={closeMenu}
+              onOpenSettings={() => setMenu('settings')}
+            />
+            <SettingsMenu open={menu === 'settings'} onToggle={toggle('settings')} onClose={closeMenu} />
+          </div>
         </header>
       )}
 
       {screen.name === 'home' && (
         <Home
           onStart={() => setScreen({ name: 'interview' })}
-          onOpenSettings={() => setMenuOpen(true)}
+          onOpenSettings={() => setMenu('settings')}
           onViewSummary={(existing) => setScreen({ name: 'summary', existing })}
         />
       )}

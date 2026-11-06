@@ -1,7 +1,6 @@
-import { useEffect, useRef } from 'react';
 import { DEFAULT_MODELS, DEFAULT_VOICES, useApp } from '../store';
 import type { CloudProvider, Lang, TtsProvider } from '../types';
-import { ChevronIcon } from './icons';
+import { Dropdown } from './Dropdown';
 import { ModelPicker } from './ModelPicker';
 import { SyncSection } from './SyncSection';
 import { Select, useLocalAiStatus } from './ui';
@@ -38,7 +37,8 @@ const LOCAL_STATUS_TEXT = {
   available: 'Listo. Corre en tu equipo; nada sale de tu navegador.',
   downloadable: 'Se descargará el modelo (~2 GB) al empezar la primera entrevista.',
   downloading: 'Descargando el modelo…',
-  unavailable: 'No disponible aquí. Activa chrome://flags/#prompt-api-for-gemini-nano o elige un proveedor con API key.',
+  unavailable:
+    'No disponible aquí. Activa chrome://flags/#prompt-api-for-gemini-nano o elige un proveedor con API key.',
 };
 
 interface Props {
@@ -50,22 +50,7 @@ interface Props {
 export function SettingsMenu({ open, onToggle, onClose }: Props) {
   const { settings, setSettings, profile, setProfile, history, clearHistory } = useApp();
   const localStatus = useLocalAiStatus();
-  const container = useRef<HTMLDivElement>(null);
   const { cloud, premiumTts } = settings;
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (e: PointerEvent) => {
-      if (!container.current?.contains(e.target as Node)) onClose();
-    };
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    document.addEventListener('pointerdown', onPointer);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('pointerdown', onPointer);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open, onClose]);
 
   const engine: EngineChoice = settings.llm === 'local' ? 'local' : cloud.provider;
   const voice: VoiceChoice = settings.tts === 'premium' ? premiumTts.provider : settings.tts;
@@ -83,89 +68,81 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
   }
 
   return (
-    <div className="menu-anchor" ref={container}>
-      <button className="ghost" aria-expanded={open} aria-haspopup="dialog" onClick={onToggle}>
-        Ajustes <ChevronIcon />
-      </button>
-
-      {open && (
-        <div className="menu" role="dialog" aria-label="Ajustes">
-          <div className="menu-group">
-            <span className="menu-label">Motor de IA</span>
-            <Select value={engine} options={ENGINES} onChange={chooseEngine} />
-            {settings.llm === 'local' ? (
-              <p className="hint">{LOCAL_STATUS_TEXT[localStatus]}</p>
+    <Dropdown label="Ajustes" title="Ajustes" open={open} onToggle={onToggle} onClose={onClose}>
+      <div className="menu-group">
+        <span className="menu-label">Motor de IA</span>
+        <Select value={engine} options={ENGINES} onChange={chooseEngine} />
+        {settings.llm === 'local' ? (
+          <p className="hint">{LOCAL_STATUS_TEXT[localStatus]}</p>
+        ) : (
+          <>
+            <input
+              type="password"
+              autoComplete="off"
+              aria-label="API key"
+              placeholder="API key"
+              value={cloud.apiKey}
+              onChange={(e) => setSettings({ cloud: { ...cloud, apiKey: e.target.value } })}
+            />
+            {cloud.provider === 'openrouter' ? (
+              <ModelPicker value={cloud.model} onChange={(model) => setSettings({ cloud: { ...cloud, model } })} />
             ) : (
-              <>
-                <input
-                  type="password"
-                  autoComplete="off"
-                  aria-label="API key"
-                  placeholder="API key"
-                  value={cloud.apiKey}
-                  onChange={(e) => setSettings({ cloud: { ...cloud, apiKey: e.target.value } })}
-                />
-                {cloud.provider === 'openrouter' ? (
-                  <ModelPicker value={cloud.model} onChange={(model) => setSettings({ cloud: { ...cloud, model } })} />
-                ) : (
-                  <input
-                    aria-label="Modelo"
-                    placeholder="Modelo"
-                    value={cloud.model}
-                    onChange={(e) => setSettings({ cloud: { ...cloud, model: e.target.value } })}
-                  />
-                )}
-                <p className="hint">
-                  Se guarda en este navegador; solo se sincroniza si lo activas abajo.{' '}
-                  <a href={KEY_LINKS[cloud.provider]} target="_blank" rel="noreferrer">
-                    Obtener una key
-                  </a>
-                </p>
-              </>
+              <input
+                aria-label="Modelo"
+                placeholder="Modelo"
+                value={cloud.model}
+                onChange={(e) => setSettings({ cloud: { ...cloud, model: e.target.value } })}
+              />
             )}
-          </div>
+            <p className="hint">
+              Se guarda en este navegador; solo se sincroniza si lo activas abajo.{' '}
+              <a href={KEY_LINKS[cloud.provider]} target="_blank" rel="noreferrer">
+                Obtener una key
+              </a>
+            </p>
+          </>
+        )}
+      </div>
 
-          <div className="menu-group">
-            <span className="menu-label">Voz del entrevistador</span>
-            <Select value={voice} options={VOICES} onChange={chooseVoice} />
-            {settings.tts === 'premium' && (
-              <>
-                <input
-                  type="password"
-                  autoComplete="off"
-                  aria-label="API key de voz"
-                  placeholder="API key"
-                  value={premiumTts.apiKey}
-                  onChange={(e) => setSettings({ premiumTts: { ...premiumTts, apiKey: e.target.value } })}
-                />
-                <input
-                  aria-label="Voz"
-                  placeholder={premiumTts.provider === 'openai' ? 'Voz (alloy, nova, onyx…)' : 'Voice ID'}
-                  value={premiumTts.voice}
-                  onChange={(e) => setSettings({ premiumTts: { ...premiumTts, voice: e.target.value } })}
-                />
-              </>
-            )}
-          </div>
+      <div className="menu-group">
+        <span className="menu-label">Voz del entrevistador</span>
+        <Select value={voice} options={VOICES} onChange={chooseVoice} />
+        {settings.tts === 'premium' && (
+          <>
+            <input
+              type="password"
+              autoComplete="off"
+              aria-label="API key de voz"
+              placeholder="API key"
+              value={premiumTts.apiKey}
+              onChange={(e) => setSettings({ premiumTts: { ...premiumTts, apiKey: e.target.value } })}
+            />
+            <input
+              aria-label="Voz"
+              placeholder={premiumTts.provider === 'openai' ? 'Voz (alloy, nova, onyx…)' : 'Voice ID'}
+              value={premiumTts.voice}
+              onChange={(e) => setSettings({ premiumTts: { ...premiumTts, voice: e.target.value } })}
+            />
+          </>
+        )}
+      </div>
 
-          <div className="menu-group">
-            <span className="menu-label">Idioma de la entrevista</span>
-            <Select value={profile.lang} options={LANGS} onChange={(lang) => setProfile({ lang })} />
-          </div>
+      <div className="menu-group">
+        <span className="menu-label">Idioma de la entrevista</span>
+        <Select value={profile.lang} options={LANGS} onChange={(lang) => setProfile({ lang })} />
+      </div>
 
-          <SyncSection />
+      <SyncSection />
 
-          <div className="menu-footer">
-            <button
-              className="link"
-              disabled={!history.length}
-              onClick={() => confirm('¿Borrar todo el historial de entrevistas?') && clearHistory()}
-            >
-              Borrar historial
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+      <div className="menu-footer">
+        <button
+          className="link"
+          disabled={!history.length}
+          onClick={() => confirm('¿Borrar todo el historial de entrevistas?') && clearHistory()}
+        >
+          Borrar historial
+        </button>
+      </div>
+    </Dropdown>
   );
 }
