@@ -1473,13 +1473,19 @@ code {
 
 /* ---------- Profile card: CV / LinkedIn briefing ---------- */
 
+/* Collapsed by default: one status line under the start button, details on demand. */
 .profile-card {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.profile-card .sync-summary {
+  color: var(--muted);
+}
+.profile-card .briefing,
+.profile-card .option {
   background: var(--surface);
 }
 .profile-head {
