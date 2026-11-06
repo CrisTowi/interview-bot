@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { DEFAULT_MODELS, DEFAULT_VOICES, useApp } from '../store';
 import type { CloudProvider, Lang, TtsProvider } from '../types';
 import { Dropdown } from './Dropdown';
 import { ModelPicker } from './ModelPicker';
 import { SyncSection, useSyncOverview } from './SyncSection';
-import { Select, useLocalAiStatus } from './ui';
+import { Select, useLocalAiStatus, useMediaQuery } from './ui';
 
 type EngineChoice = 'local' | CloudProvider;
 type VoiceChoice = 'native' | 'off' | TtsProvider;
@@ -48,9 +48,9 @@ interface Props {
   onClose: () => void;
 }
 
-type View = 'overview' | 'engine' | 'voice' | 'sync';
+type Section = 'engine' | 'voice' | 'sync';
 
-const VIEW_TITLES: Record<Exclude<View, 'overview'>, string> = {
+const SECTION_TITLES: Record<Section, string> = {
   engine: 'Motor de IA',
   voice: 'Voz e idioma',
   sync: 'Sincronización',
@@ -68,15 +68,22 @@ function OverviewRow({
   title,
   value,
   tone,
+  active,
   onOpen,
 }: {
   title: string;
   value: string;
   tone?: string;
+  active: boolean;
   onOpen: () => void;
 }) {
   return (
-    <button type="button" className="overview-row" onClick={onOpen}>
+    <button
+      type="button"
+      className={active ? 'overview-row active' : 'overview-row'}
+      aria-expanded={active}
+      onClick={onOpen}
+    >
       <span className="overview-text">
         <span className="overview-title">{title}</span>
         <span className="overview-value">
@@ -99,20 +106,24 @@ function OverviewRow({
 }
 
 /**
- * Settings in two levels: an overview of three rows that already show their current values, and one
- * focused view per section, so the panel never shows every option at once.
+ * Settings in two levels: an overview of three rows that already show their current values, and the
+ * chosen section in a floating panel beside it (inline under its row on narrow screens).
  */
 export function SettingsMenu({ open, onToggle, onClose }: Props) {
   const { settings, setSettings, profile, setProfile, history, clearHistory } = useApp();
   const localStatus = useLocalAiStatus();
   const sync = useSyncOverview();
-  const [view, setView] = useState<View>('overview');
+  const [section, setSection] = useState<Section | null>(null);
+  // The side panel needs room to the left of the menu; on narrow screens sections open inline.
+  const wide = useMediaQuery('(min-width: 760px)');
   const { cloud, premiumTts } = settings;
 
-  // Every time the panel opens, start from the overview.
+  // Every time the menu opens, start with just the overview.
   useEffect(() => {
-    if (open) setView('overview');
+    if (open) setSection(null);
   }, [open]);
+
+  const toggleSection = (next: Section) => setSection((current) => (current === next ? null : next));
 
   const engine: EngineChoice = settings.llm === 'local' ? 'local' : cloud.provider;
   const voice: VoiceChoice = settings.tts === 'premium' ? premiumTts.provider : settings.tts;
@@ -143,6 +154,84 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
   const voiceLabel = VOICES.find((v) => v.value === voice)?.label ?? '';
   const langLabel = LANGS.find((l) => l.value === profile.lang)?.label ?? '';
 
+  let content: ReactNode = null;
+  if (section === 'engine') {
+    content = (
+      <div className="menu-group">
+        <Select value={engine} options={ENGINES} onChange={chooseEngine} label="Motor de IA" />
+        {settings.llm === 'local' ? (
+          <p className="hint">{LOCAL_STATUS_TEXT[localStatus]}</p>
+        ) : (
+          <>
+            <input
+              type="password"
+              autoComplete="off"
+              aria-label="API key"
+              placeholder="API key"
+              value={cloud.apiKey}
+              onChange={(e) => setSettings({ cloud: { ...cloud, apiKey: e.target.value } })}
+            />
+            {cloud.provider === 'openrouter' ? (
+              <ModelPicker value={cloud.model} onChange={(model) => setSettings({ cloud: { ...cloud, model } })} />
+            ) : (
+              <input
+                aria-label="Modelo"
+                placeholder="Modelo"
+                value={cloud.model}
+                onChange={(e) => setSettings({ cloud: { ...cloud, model: e.target.value } })}
+              />
+            )}
+            <p className="hint">
+              Se guarda en este navegador; solo se sincroniza si lo activas en Sincronización.{' '}
+              <a href={KEY_LINKS[cloud.provider]} target="_blank" rel="noreferrer">
+                Obtener una key
+              </a>
+            </p>
+          </>
+        )}
+      </div>
+    );
+  } else if (section === 'voice') {
+    content = (
+      <>
+        <div className="menu-group">
+          <span className="menu-label">Voz del entrevistador</span>
+          <Select value={voice} options={VOICES} onChange={chooseVoice} label="Voz del entrevistador" />
+          {settings.tts === 'premium' && (
+            <>
+              <input
+                type="password"
+                autoComplete="off"
+                aria-label="API key de voz"
+                placeholder="API key"
+                value={premiumTts.apiKey}
+                onChange={(e) => setSettings({ premiumTts: { ...premiumTts, apiKey: e.target.value } })}
+              />
+              <input
+                aria-label="Voz"
+                placeholder={premiumTts.provider === 'openai' ? 'Voz (alloy, nova, onyx…)' : 'Voice ID'}
+                value={premiumTts.voice}
+                onChange={(e) => setSettings({ premiumTts: { ...premiumTts, voice: e.target.value } })}
+              />
+            </>
+          )}
+        </div>
+        <div className="menu-group">
+          <span className="menu-label">Idioma de la entrevista</span>
+          <Select value={profile.lang} options={LANGS} onChange={(lang) => setProfile({ lang })} label="Idioma" />
+        </div>
+      </>
+    );
+  } else if (section === 'sync') {
+    content = <SyncSection />;
+  }
+
+  const rows: { id: Section; title: string; value: string; tone?: string }[] = [
+    { id: 'engine', title: SECTION_TITLES.engine, value: engineSummary.value, tone: engineSummary.tone },
+    { id: 'voice', title: SECTION_TITLES.voice, value: `${voiceLabel}, ${langLabel}` },
+    { id: 'sync', title: SECTION_TITLES.sync, value: sync.summary.text, tone: sync.summary.tone },
+  ];
+
   return (
     <Dropdown
       label={
@@ -155,114 +244,42 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
       open={open}
       onToggle={onToggle}
       onClose={onClose}
-    >
-      {view === 'overview' ? (
-        <>
-          <OverviewRow
-            title="Motor de IA"
-            value={engineSummary.value}
-            tone={engineSummary.tone}
-            onOpen={() => setView('engine')}
-          />
-          <OverviewRow title="Voz e idioma" value={`${voiceLabel}, ${langLabel}`} onOpen={() => setView('voice')} />
-          <OverviewRow
-            title="Sincronización"
-            value={sync.summary.text}
-            tone={sync.summary.tone}
-            onOpen={() => setView('sync')}
-          />
-          <div className="menu-footer">
-            <button
-              className="link"
-              disabled={!history.length}
-              onClick={() => confirm('¿Borrar todo el historial de entrevistas?') && clearHistory()}
-            >
-              Borrar historial
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="view-head">
-            <button type="button" className="link back" onClick={() => setView('overview')}>
-              ‹ Ajustes
-            </button>
-            <h3>{VIEW_TITLES[view]}</h3>
-          </div>
-
-          {view === 'engine' && (
-            <div className="menu-group">
-              <Select value={engine} options={ENGINES} onChange={chooseEngine} label="Motor de IA" />
-              {settings.llm === 'local' ? (
-                <p className="hint">{LOCAL_STATUS_TEXT[localStatus]}</p>
-              ) : (
-                <>
-                  <input
-                    type="password"
-                    autoComplete="off"
-                    aria-label="API key"
-                    placeholder="API key"
-                    value={cloud.apiKey}
-                    onChange={(e) => setSettings({ cloud: { ...cloud, apiKey: e.target.value } })}
-                  />
-                  {cloud.provider === 'openrouter' ? (
-                    <ModelPicker
-                      value={cloud.model}
-                      onChange={(model) => setSettings({ cloud: { ...cloud, model } })}
-                    />
-                  ) : (
-                    <input
-                      aria-label="Modelo"
-                      placeholder="Modelo"
-                      value={cloud.model}
-                      onChange={(e) => setSettings({ cloud: { ...cloud, model: e.target.value } })}
-                    />
-                  )}
-                  <p className="hint">
-                    Se guarda en este navegador; solo se sincroniza si lo activas en Sincronización.{' '}
-                    <a href={KEY_LINKS[cloud.provider]} target="_blank" rel="noreferrer">
-                      Obtener una key
-                    </a>
-                  </p>
-                </>
-              )}
+      aside={
+        wide &&
+        section && (
+          <div className="flyout" role="dialog" aria-label={SECTION_TITLES[section]}>
+            <div className="flyout-head">
+              <h3>{SECTION_TITLES[section]}</h3>
+              <button className="icon-btn" onClick={() => setSection(null)} aria-label="Cerrar">
+                ✕
+              </button>
             </div>
-          )}
-
-          {view === 'voice' && (
-            <>
-              <div className="menu-group">
-                <span className="menu-label">Voz del entrevistador</span>
-                <Select value={voice} options={VOICES} onChange={chooseVoice} label="Voz del entrevistador" />
-                {settings.tts === 'premium' && (
-                  <>
-                    <input
-                      type="password"
-                      autoComplete="off"
-                      aria-label="API key de voz"
-                      placeholder="API key"
-                      value={premiumTts.apiKey}
-                      onChange={(e) => setSettings({ premiumTts: { ...premiumTts, apiKey: e.target.value } })}
-                    />
-                    <input
-                      aria-label="Voz"
-                      placeholder={premiumTts.provider === 'openai' ? 'Voz (alloy, nova, onyx…)' : 'Voice ID'}
-                      value={premiumTts.voice}
-                      onChange={(e) => setSettings({ premiumTts: { ...premiumTts, voice: e.target.value } })}
-                    />
-                  </>
-                )}
-              </div>
-              <div className="menu-group">
-                <span className="menu-label">Idioma de la entrevista</span>
-                <Select value={profile.lang} options={LANGS} onChange={(lang) => setProfile({ lang })} label="Idioma" />
-              </div>
-            </>
-          )}
-
-          {view === 'sync' && <SyncSection />}
-        </>
-      )}
+            {content}
+          </div>
+        )
+      }
+    >
+      {rows.map((row) => (
+        <div key={row.id}>
+          <OverviewRow
+            title={row.title}
+            value={row.value}
+            tone={row.tone}
+            active={section === row.id}
+            onOpen={() => toggleSection(row.id)}
+          />
+          {!wide && section === row.id && <div className="inline-section">{content}</div>}
+        </div>
+      ))}
+      <div className="menu-footer">
+        <button
+          className="link"
+          disabled={!history.length}
+          onClick={() => confirm('¿Borrar todo el historial de entrevistas?') && clearHistory()}
+        >
+          Borrar historial
+        </button>
+      </div>
     </Dropdown>
   );
 }

@@ -50,3 +50,14 @@ export function ScoreBadge({ score }: { score: number }) {
   const tone = score >= 7 ? 'good' : score >= 5 ? 'mid' : 'low';
   return <span className={`score ${tone}`}>{score}/10</span>;
 }
+
+export function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const list = window.matchMedia(query);
+    const onChange = () => setMatches(list.matches);
+    list.addEventListener('change', onChange);
+    return () => list.removeEventListener('change', onChange);
+  }, [query]);
+  return matches;
+}

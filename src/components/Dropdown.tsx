@@ -9,6 +9,7 @@ export function Dropdown({
   onToggle,
   onClose,
   children,
+  aside,
 }: {
   label: ReactNode;
   title: string;
@@ -16,6 +17,8 @@ export function Dropdown({
   onToggle: () => void;
   onClose: () => void;
   children: ReactNode;
+  /** Optional floating panel beside the menu; part of the dropdown for outside-click purposes. */
+  aside?: ReactNode;
 }) {
   const container = useRef<HTMLDivElement>(null);
 
@@ -43,6 +46,7 @@ export function Dropdown({
           {children}
         </div>
       )}
+      {open && aside}
     </div>
   );
 }
