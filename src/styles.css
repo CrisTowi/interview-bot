@@ -261,13 +261,7 @@ textarea:focus,
   text-wrap: pretty;
 }
 
-.select.inline {
-  display: inline-block;
-}
-.select.inline::after {
-  display: none;
-}
-.select.inline select,
+.picker-trigger,
 .inline-input {
   font: inherit;
   color: var(--accent);
@@ -284,12 +278,95 @@ textarea:focus,
   min-width: 4ch;
   max-width: 100%;
 }
-.select.inline select:hover,
+.picker-trigger:hover,
+.picker-trigger[aria-expanded='true'],
 .inline-input:hover,
-.select.inline select:focus,
 .inline-input:focus {
   border-bottom-style: solid;
   border-bottom-color: var(--accent);
+}
+
+/* Inline pickers: a word in the sentence that opens a small card of choices. */
+.picker {
+  position: relative;
+  display: inline-block;
+}
+.picker-trigger {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15em;
+  cursor: pointer;
+}
+.picker-trigger svg {
+  width: 0.45em;
+  height: 0.45em;
+  align-self: center;
+  opacity: 0.7;
+  transition: transform 150ms ease;
+}
+.picker-trigger[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+.picker-trigger:focus-visible {
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+.picker-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  width: max-content;
+  min-width: 240px;
+  max-width: min(320px, calc(100vw - 32px));
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.16);
+  font: 400 0.95rem/1.35 var(--sans);
+  letter-spacing: 0;
+  animation: drop 140ms ease-out;
+}
+.picker-menu.right {
+  left: auto;
+  right: 0;
+}
+.picker-menu:focus {
+  outline: none;
+}
+.picker-menu li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.picker-menu li.active {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.picker-text {
+  display: flex;
+  flex-direction: column;
+}
+.picker-label {
+  color: var(--ink);
+  font-weight: 550;
+}
+.picker-menu li[aria-selected='true'] .picker-label {
+  color: var(--accent);
+}
+.picker-hint {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.picker-check {
+  flex: none;
+  color: var(--accent);
 }
 
 .start {
@@ -1161,4 +1238,8 @@ code {
 }
 .verdict-scale li + li {
   margin-top: 0;
+}
+/* Options read lowercase inside the sentence but as titles in the menu. */
+.picker-label::first-letter {
+  text-transform: uppercase;
 }

@@ -1,14 +1,34 @@
-import { ScoreBadge, Select, useEngineReady } from '../components/ui';
+import { InlinePicker, type PickerOption } from '../components/InlinePicker';
+import { ScoreBadge, useEngineReady } from '../components/ui';
 import { FOCUS_LABELS, focusTitle } from '../lib/prompts';
 import { useApp } from '../store';
 import type { Company, Focus, SessionSummary, Seniority } from '../types';
 
-const SENIORITY = (['Junior', 'Mid', 'Senior', 'Staff'] as const).map((v) => ({ value: v as Seniority, label: v }));
-const COMPANIES = (['Amazon', 'Google', 'Meta', 'Startup'] as const).map((v) => ({
-  value: v as Company,
-  label: v === 'Startup' ? 'una startup' : v,
+const SENIORITY: PickerOption<Seniority>[] = [
+  { value: 'Junior', label: 'Junior', hint: '0 a 2 años de experiencia' },
+  { value: 'Mid', label: 'Mid', hint: '2 a 5 años, trabajas con autonomía' },
+  { value: 'Senior', label: 'Senior', hint: '5+ años, lideras proyectos' },
+  { value: 'Staff', label: 'Staff', hint: 'Influyes en varios equipos' },
+];
+const COMPANIES: PickerOption<Company>[] = [
+  { value: 'Amazon', label: 'Amazon', hint: 'Leadership Principles y mucho detalle' },
+  { value: 'Google', label: 'Google', hint: 'Googleyness, colaboración y ambigüedad' },
+  { value: 'Meta', label: 'Meta', hint: 'Impacto, ritmo y conflictos' },
+  { value: 'Startup', label: 'una startup', hint: 'Ownership y pragmatismo' },
+];
+const FOCUS_HINTS: Record<Focus, string> = {
+  mixed: 'Un poco de todo, como una ronda real',
+  leadership: 'Influir sin autoridad, mentorear, decidir',
+  conflict: 'Desacuerdos con pares, jefes o stakeholders',
+  failure: 'Errores, feedback duro y qué cambiaste',
+  impact: 'Tus logros más grandes y cómo los mediste',
+  ambiguity: 'Decidir con información incompleta',
+};
+const FOCUSES: PickerOption<Focus>[] = (Object.keys(FOCUS_LABELS) as Focus[]).map((v) => ({
+  value: v,
+  label: FOCUS_LABELS[v],
+  hint: FOCUS_HINTS[v],
 }));
-const FOCUSES = (Object.keys(FOCUS_LABELS) as Focus[]).map((v) => ({ value: v, label: FOCUS_LABELS[v] }));
 const PROVIDER_LABELS = { openai: 'OpenAI', anthropic: 'Anthropic', gemini: 'Gemini', openrouter: 'OpenRouter' };
 
 interface Props {
@@ -37,7 +57,7 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
     <main className="home">
       <p className="sentence">
         Practica una entrevista behavioral de nivel{' '}
-        <Select inline label="Nivel" value={profile.seniority} options={SENIORITY} onChange={(seniority) => setProfile({ seniority })} />{' '}
+        <InlinePicker label="Nivel" value={profile.seniority} options={SENIORITY} onChange={(seniority) => setProfile({ seniority })} />{' '}
         para{' '}
         <input
           className="inline-input"
@@ -47,9 +67,9 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
           placeholder="tu puesto"
         />{' '}
         al estilo de{' '}
-        <Select inline label="Empresa" value={profile.company} options={COMPANIES} onChange={(company) => setProfile({ company })} />
+        <InlinePicker label="Empresa" value={profile.company} options={COMPANIES} onChange={(company) => setProfile({ company })} />
         , sobre{' '}
-        <Select inline label="Enfoque" value={profile.focus} options={FOCUSES} onChange={(focus) => setProfile({ focus })} />.
+        <InlinePicker label="Enfoque" value={profile.focus} options={FOCUSES} onChange={(focus) => setProfile({ focus })} />.
       </p>
 
       <div className="start">

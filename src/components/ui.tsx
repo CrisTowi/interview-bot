@@ -6,18 +6,15 @@ export function Select<T extends string>({
   value,
   options,
   onChange,
-  inline,
   label,
 }: {
   value: T;
   options: readonly { value: T; label: string }[];
   onChange: (value: T) => void;
-  /** Rendered as an underlined word inside a sentence. */
-  inline?: boolean;
   label?: string;
 }) {
   return (
-    <span className={inline ? 'select inline' : 'select'}>
+    <span className="select">
       <select value={value} aria-label={label} onChange={(e) => onChange(e.target.value as T)}>
         {options.map((o) => (
           <option key={o.value} value={o.value}>
