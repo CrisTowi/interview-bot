@@ -32,7 +32,7 @@ export function App() {
         <header className="topbar">
           <button className="brand" onClick={home}>
             <img src="/favicon.svg" alt="" width={30} height={30} />
-            {APP_NAME}
+            <span className="brand-name">{APP_NAME}</span>
           </button>
           <div className="topbar-actions">
             <ProfileMenu
