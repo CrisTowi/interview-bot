@@ -25,7 +25,8 @@ export function fetchOpenRouterModels(): Promise<ModelOption[]> {
     })
     .then(({ data }: { data: any[] }) =>
       data
-        .filter((m) => !m.id.endsWith(':batch') && m.architecture?.output_modalities?.includes('text'))
+        // Text-only output: media models (music, images) list $0 per token but charge per item.
+        .filter((m) => !m.id.endsWith(':batch') && m.architecture?.output_modalities?.join() === 'text')
         .map((m): ModelOption => {
           const inputPerM = Number(m.pricing?.prompt) * 1e6;
           const outputPerM = Number(m.pricing?.completion) * 1e6;
