@@ -71,6 +71,8 @@ export interface NostrIdentity {
   secretKey?: string;
   syncKeys: boolean;
   vault?: Vault;
+  /** Hash of the keys last sealed into `vault`, to tell whether local keys changed since. Never synced. */
+  keysFingerprint?: string;
 }
 
 /** What gets NIP-44 encrypted and published to relays. API keys only travel inside `vault`. */

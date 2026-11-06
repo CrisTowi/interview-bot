@@ -1338,3 +1338,97 @@ code {
 .star-guide li + li {
   margin-top: 0;
 }
+
+/* ---------- Sync section: what syncs, and API key states ---------- */
+
+.sync-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sync-header .sync-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.sync-lead {
+  margin: 0;
+  font-size: 0.9rem;
+}
+.how summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+.how ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sync-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+.sync-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+.sync-list li.on {
+  color: var(--ink);
+}
+.sync-mark {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  background: var(--line);
+  color: var(--muted);
+}
+.sync-list li.on .sync-mark {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.sync-detail {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.key-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+.key-box p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+.account {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+.menu-group .muted-link {
+  color: var(--muted);
+}

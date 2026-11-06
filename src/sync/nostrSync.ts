@@ -6,7 +6,7 @@ import { create } from 'zustand';
 import { useApp } from '../store';
 import type { Settings, SyncPayload } from '../types';
 import { extensionSigner, localSigner, type Signer } from './signer';
-import { openVault, sealVault } from './vault';
+import { fingerprint, openVault, sealVault } from './vault';
 
 /**
  * Multi-device sync over Nostr. The whole app state is NIP-44 encrypted to the user's own pubkey and
@@ -71,7 +71,7 @@ async function buildPayload(): Promise<SyncPayload> {
   if (state.nostr.syncKeys && passphrase) {
     const keys = { cloud: state.settings.cloud.apiKey, tts: state.settings.premiumTts.apiKey };
     vault = await sealVault(keys, passphrase, vault?.salt);
-    state.setNostr({ vault });
+    state.setNostr({ vault, keysFingerprint: await fingerprint(keys) });
   }
   const payload: SyncPayload = {
     v: 1,
@@ -115,7 +115,9 @@ async function refreshVaultLock() {
   if (!nostr.syncKeys || !nostr.vault) return useSync.setState({ vaultLocked: false });
   if (!passphrase) return useSync.setState({ vaultLocked: true });
   try {
-    setKeysSilently(await openVault(nostr.vault, passphrase));
+    const keys = await openVault(nostr.vault, passphrase);
+    setKeysSilently(keys);
+    useApp.getState().setNostr({ keysFingerprint: await fingerprint(keys) });
     useSync.setState({ vaultLocked: false });
   } catch {
     passphrase = null;
@@ -202,7 +204,14 @@ export function importNsec(nsec: string) {
 export function disconnect() {
   stop();
   passphrase = null;
-  useApp.getState().setNostr({ mode: 'none', pubkey: '', secretKey: undefined, syncKeys: false, vault: undefined });
+  useApp.getState().setNostr({
+    mode: 'none',
+    pubkey: '',
+    secretKey: undefined,
+    syncKeys: false,
+    vault: undefined,
+    keysFingerprint: undefined,
+  });
   useSync.setState({ status: 'off', error: '', vaultLocked: false });
 }
 
@@ -215,16 +224,29 @@ export function enableKeySync(newPassphrase: string) {
 
 export function disableKeySync() {
   passphrase = null;
-  useApp.getState().setNostr({ syncKeys: false, vault: undefined }, { touch: true });
+  useApp.getState().setNostr({ syncKeys: false, vault: undefined, keysFingerprint: undefined }, { touch: true });
   useSync.setState({ vaultLocked: false });
 }
 
+/** New device: bring the synced keys into this browser. */
 export async function unlockKeys(candidate: string) {
-  const { nostr, setKeysSilently } = useApp.getState();
+  const { nostr, setKeysSilently, setNostr } = useApp.getState();
   if (!nostr.vault) return;
-  setKeysSilently(await openVault(nostr.vault, candidate));
+  const keys = await openVault(nostr.vault, candidate);
+  setKeysSilently(keys);
+  setNostr({ keysFingerprint: await fingerprint(keys) });
   passphrase = candidate;
   useSync.setState({ vaultLocked: false });
+}
+
+/** Keys changed in this browser: check the password, then re-seal the synced copy with the local keys. */
+export async function updateSyncedKeys(candidate: string) {
+  const { nostr, setNostr } = useApp.getState();
+  if (!nostr.vault) return;
+  await openVault(nostr.vault, candidate);
+  passphrase = candidate;
+  useSync.setState({ vaultLocked: false });
+  setNostr({}, { touch: true });
 }
 
 export function exportNsec(): string | null {

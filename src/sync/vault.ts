@@ -48,6 +48,12 @@ export async function openVault(vault: Vault, passphrase: string): Promise<Vault
     const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromBase64(vault.iv) }, key, fromBase64(vault.data));
     return JSON.parse(new TextDecoder().decode(plain));
   } catch {
-    throw new Error('Frase de paso incorrecta.');
+    throw new Error('Esa contraseña no abre tus keys. Revisa mayúsculas y espacios.');
   }
+}
+
+/** Identifies a set of keys without storing them, to detect local changes. */
+export async function fingerprint(keys: VaultKeys): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify([keys.cloud, keys.tts])));
+  return toBase64(new Uint8Array(digest));
 }
