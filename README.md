@@ -4,7 +4,7 @@ Simulador de entrevistas **behavioral** estilo Big Tech con IA (STAR, Leadership
 
 ## Cómo funciona
 
-- **Frontend estático** (Vite + React + TypeScript, Zustand). El perfil, los ajustes, las API keys y los resúmenes se guardan solo en el `localStorage` del navegador.
+- **Frontend estático** (Vite + React + TypeScript, Zustand). El perfil, los ajustes, las API keys y los resúmenes se guardan en el `localStorage` del navegador y, si lo activas, se sincronizan cifrados por Nostr.
 - **Motor de IA intercambiable** (`src/engines/agent.ts` → `InterviewAgent`)
   - Capa 1: Chrome Built-in AI (Gemini Nano, Prompt API). Local, gratis y privado.
   - Capa 2: BYOK (OpenAI / Anthropic / Gemini) a través de `api/chat.ts`.
@@ -40,4 +40,14 @@ Requiere Chrome de escritorio reciente con Gemini Nano. Si no aparece disponible
 
 - [x] Fase 1: MVP local, UI de preferencias por capas, proxy serverless BYOK
 - [x] Fase 2: resumen al final de cada sesión, inyectado en las siguientes
-- [ ] Fase 3: sync con Nostr (NIP-07 / NIP-44). Punto de integración: la opción `storage` de `persist` en `src/store.ts`.
+- [x] Fase 3: sync con Nostr (NIP-07 / NIP-44)
+
+## Sincronización (Nostr)
+
+Opcional, desde **Ajustes → Sincronizar entre dispositivos** (`src/sync/`):
+
+- **Identidad:** una extensión NIP-07 (Alby, nos2x…) o una clave creada/importada en el navegador (`nsec`).
+- **Datos:** perfil, ajustes e historial se cifran con NIP-44 hacia tu propia clave pública y se publican como un único evento reemplazable NIP-78 (kind `30078`, `d=interview-bot/state`) en `relay.damus.io`, `nos.lol` y `relay.primal.net`. Los relays solo ven texto cifrado.
+- **API keys:** no se sincronizan por defecto. Si lo activas, se cifran además con una frase de paso (PBKDF2 600k + AES-GCM, WebCrypto) antes del cifrado NIP-44, así que filtrar la `nsec` no basta para leerlas. La frase solo vive en memoria.
+- **Conflictos:** gana la copia editada más recientemente; el historial se une por id entre dispositivos.
+- `localStorage` sigue siendo la fuente local; los relays son el punto de encuentro entre dispositivos.

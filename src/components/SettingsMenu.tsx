@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { DEFAULT_MODELS, DEFAULT_VOICES, useApp } from '../store';
 import type { CloudProvider, Lang, TtsProvider } from '../types';
 import { ChevronIcon } from './icons';
+import { SyncSection } from './SyncSection';
 import { Select, useLocalAiStatus } from './ui';
 
 type EngineChoice = 'local' | CloudProvider;
@@ -108,7 +109,7 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
                   onChange={(e) => setSettings({ cloud: { ...cloud, model: e.target.value } })}
                 />
                 <p className="hint">
-                  Se guarda solo en este navegador.{' '}
+                  Se guarda en este navegador; solo se sincroniza si lo activas abajo.{' '}
                   <a href={KEY_LINKS[cloud.provider]} target="_blank" rel="noreferrer">
                     Obtener una key
                   </a>
@@ -144,6 +145,8 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
             <span className="menu-label">Idioma de la entrevista</span>
             <Select value={profile.lang} options={LANGS} onChange={(lang) => setProfile({ lang })} />
           </div>
+
+          <SyncSection />
 
           <div className="menu-footer">
             <button

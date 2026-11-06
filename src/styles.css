@@ -599,3 +599,67 @@ textarea:focus,
 .dot:not(.ok):not(.warn) {
   background: var(--line);
 }
+
+/* ---------- Sync section ---------- */
+
+.menu {
+  max-height: calc(100dvh - 80px);
+  overflow-y: auto;
+}
+.menu-group .secondary {
+  width: 100%;
+}
+.menu-group .link {
+  align-self: flex-start;
+  font-size: 0.85rem;
+  text-align: left;
+}
+.row {
+  display: flex;
+  gap: 8px;
+}
+.row input {
+  flex: 1;
+  min-width: 0;
+}
+.row .secondary {
+  width: auto;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.check input {
+  margin: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+.sync-status {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+}
+code {
+  font: 0.8rem ui-monospace, 'SF Mono', Menlo, monospace;
+}
+.secret {
+  display: block;
+  padding: 8px 10px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  word-break: break-all;
+  user-select: all;
+}

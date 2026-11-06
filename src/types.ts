@@ -47,3 +47,31 @@ export interface SessionSummary extends Evaluation {
   company: Company;
   focus: Focus;
 }
+
+/** API keys sealed with a passphrase (PBKDF2 + AES-GCM) before going into the synced payload. */
+export interface Vault {
+  salt: string;
+  iv: string;
+  data: string;
+}
+
+export interface NostrIdentity {
+  /** 'extension' = NIP-07 signer (Alby, nos2x…); 'local' = key generated or imported in this browser. */
+  mode: 'none' | 'extension' | 'local';
+  pubkey: string;
+  /** Hex secret key, only for 'local' mode. Never leaves this browser. */
+  secretKey?: string;
+  syncKeys: boolean;
+  vault?: Vault;
+}
+
+/** What gets NIP-44 encrypted and published to relays. API keys only travel inside `vault`. */
+export interface SyncPayload {
+  v: 1;
+  updatedAt: number;
+  profile: Profile;
+  settings: Settings;
+  history: SessionSummary[];
+  historyClearedAt: number;
+  vault?: Vault;
+}

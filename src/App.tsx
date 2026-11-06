@@ -1,8 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { SettingsMenu } from './components/SettingsMenu';
 import { Home } from './screens/Home';
 import { Interview } from './screens/Interview';
 import { Summary } from './screens/Summary';
+import { startSync } from './sync/nostrSync';
 import type { ChatMessage, SessionSummary } from './types';
 
 type Screen =
@@ -15,6 +16,11 @@ export function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
   const home = () => setScreen({ name: 'home' });
+
+  // Pull the encrypted copy from Nostr relays (if an identity is connected) and keep it in sync.
+  useEffect(() => {
+    startSync();
+  }, []);
 
   return (
     <div className="app">
