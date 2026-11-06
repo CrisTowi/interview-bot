@@ -34,9 +34,19 @@ const COMPANY_GUIDE: Record<Company, string> = {
   Startup: 'Follow a startup style: assess ownership, scrappiness, working with little structure and wearing many hats.',
 };
 
-export function buildSystemPrompt(p: Profile, history: SessionSummary[]): string {
+const INTERVIEWER_NAMES: Record<Lang, string[]> = {
+  es: ['Laura', 'Daniel', 'Sofía', 'Andrés', 'Valeria', 'Martín'],
+  en: ['Sarah', 'David', 'Emily', 'Michael', 'Priya', 'James'],
+};
+
+export function pickInterviewerName(lang: Lang): string {
+  const names = INTERVIEWER_NAMES[lang];
+  return names[Math.floor(Math.random() * names.length)];
+}
+
+export function buildSystemPrompt(p: Profile, history: SessionSummary[], interviewerName: string): string {
   const lines: (string | null)[] = [
-    `You are a senior interviewer at ${p.company} running a realistic behavioral interview for a ${p.seniority} ${p.role} position.`,
+    `You are ${interviewerName}, a senior interviewer at ${p.company}, running a realistic behavioral interview for a ${p.seniority} ${p.role} position over a video call.`,
     COMPANY_GUIDE[p.company],
     FOCUS_GUIDE[p.focus],
     p.background.trim() ? `What the candidate shared about themselves: ${p.background.trim()}` : null,
@@ -50,7 +60,7 @@ export function buildSystemPrompt(p: Profile, history: SessionSummary[]): string
     `- Probe whether the scope of their stories matches what is expected of a ${p.seniority} engineer.`,
     '- If an answer is vague or hypothetical, politely ask for a concrete example.',
     '- Never give feedback or evaluate during the interview. Never break character or mention that you are an AI.',
-    '- Open by greeting the candidate briefly, introducing yourself with a first name, and asking the first question.',
+    `- Open by greeting the candidate briefly, introducing yourself as ${interviewerName}, and asking the first question.`,
     '- Cover about 4-5 main questions with their follow-ups, then wrap up and invite the candidate to ask you a question.',
   ];
 

@@ -23,23 +23,17 @@ export function App() {
   }, []);
 
   return (
-    <div className="app">
-      <header className="topbar">
-        {screen.name === 'interview' ? (
-          <span className="brand">
-            <img src="/favicon.svg" alt="" width={30} height={30} />
-            interview-bot
-          </span>
-        ) : (
+    <div className={screen.name === 'interview' ? 'app in-call' : 'app'}>
+      {/* The call takes the whole screen, like a real video call. */}
+      {screen.name !== 'interview' && (
+        <header className="topbar">
           <button className="brand" onClick={home}>
             <img src="/favicon.svg" alt="" width={30} height={30} />
             interview-bot
           </button>
-        )}
-        {screen.name !== 'interview' && (
           <SettingsMenu open={menuOpen} onToggle={() => setMenuOpen((o) => !o)} onClose={closeMenu} />
-        )}
-      </header>
+        </header>
+      )}
 
       {screen.name === 'home' && (
         <Home
