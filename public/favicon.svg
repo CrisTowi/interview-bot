@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Speech bubble: the interviewer -->
+  <path d="M18 9h28a13 13 0 0 1 13 13v14a13 13 0 0 1-13 13H27l-11 9v-9.6A13 13 0 0 1 5 36V22A13 13 0 0 1 18 9z" fill="#2F6B5A"/>
+  <!-- Eyes, glancing up and to the side -->
+  <circle cx="23" cy="30" r="6" fill="#FBFBFA"/>
+  <circle cx="41" cy="30" r="6" fill="#FBFBFA"/>
+  <circle cx="24.6" cy="28.6" r="2.8" fill="#1C1C1A"/>
+  <circle cx="42.6" cy="28.6" r="2.8" fill="#1C1C1A"/>
+  <!-- Eyebrows: one flat, one raised ("tell me about a time...") -->
+  <path d="M17 21.5h11" stroke="#FBFBFA" stroke-width="3" stroke-linecap="round"/>
+  <path d="M33.5 20.5q5-5 10.5-2.5" stroke="#FBFBFA" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <!-- Smirk -->
+  <path d="M27.5 41.5q5.5 2.5 10.5-1.5" stroke="#FBFBFA" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+  <!-- STAR method sticker -->
+  <polygon points="51.0,3.5 53.5,9.6 60.0,10.1 55.0,14.3 56.6,20.7 51.0,17.2 45.4,20.7 47.0,14.3 42.0,10.1 48.5,9.6" fill="#F2B544" stroke="#1C1C1A" stroke-width="1.6" stroke-linejoin="round"/>
+</svg>

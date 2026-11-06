@@ -1,4 +1,4 @@
-import type { ChatMessage, Company, Evaluation, Focus, Lang, Profile, SessionSummary } from '../types';
+import type { ChatMessage, Company, Dimension, Evaluation, Focus, Lang, Profile, SessionSummary } from '../types';
 
 const LANGUAGE: Record<Lang, string> = { es: 'Spanish', en: 'English' };
 
@@ -70,11 +70,29 @@ export function kickoffMessage(lang: Lang): ChatMessage {
   return { role: 'user', content, hidden: true };
 }
 
+export const DIMENSIONS: Dimension[] = ['structure', 'specificity', 'ownership', 'impact', 'scope', 'communication'];
+
 export function buildSummaryPrompt(p: Profile): string {
   return `You are a member of a ${p.company} hiring committee. Evaluate the candidate in the following behavioral interview for a ${p.seniority} ${p.role} position.
-Judge: STAR structure, specificity of examples, personal ownership ("I" vs "we"), measurable impact, scope relative to the ${p.seniority} level, and clarity of communication.
-Reply ONLY with a JSON object, no other text. Write the text fields in ${LANGUAGE[p.lang]}. Shape:
-{"score": <integer 1-10>, "verdict": "<Strong Hire | Hire | Lean Hire | Lean No Hire | No Hire>", "summary": "<2-3 sentences>", "strengths": ["<short point>", ...], "improvements": ["<short, actionable point>", ...]}`;
+Be honest and specific: quote or paraphrase what the candidate actually said. Address the candidate directly as "you".
+Reply ONLY with a JSON object, no other text. Write all text fields in ${LANGUAGE[p.lang]}. Shape:
+{
+  "score": <integer 1-10>,
+  "verdict": "<Strong Hire | Hire | Lean Hire | Lean No Hire | No Hire>",
+  "headline": "<one punchy sentence with the single most important takeaway, max 15 words>",
+  "summary": "<2-3 sentences explaining the verdict>",
+  "dimensions": {
+    "structure": {"score": <1-5>, "note": "<one sentence: did answers follow Situation, Task, Action, Result?>"},
+    "specificity": {"score": <1-5>, "note": "<one sentence: concrete real examples vs vague or hypothetical>"},
+    "ownership": {"score": <1-5>, "note": "<one sentence: what they personally did, 'I' vs 'we'>"},
+    "impact": {"score": <1-5>, "note": "<one sentence: measurable results and business impact>"},
+    "scope": {"score": <1-5>, "note": "<one sentence: does the scope of their stories match a ${p.seniority} level?>"},
+    "communication": {"score": <1-5>, "note": "<one sentence: clarity, concision, structure of delivery>"}
+  },
+  "strengths": ["<short point>", ...],
+  "improvements": ["<short, actionable point>", ...],
+  "nextStep": "<one concrete exercise to practice before the next interview>"
+}`;
 }
 
 export function transcriptText(messages: ChatMessage[]): string {
@@ -89,12 +107,21 @@ export function parseEvaluation(raw: string): Evaluation {
   try {
     const data = JSON.parse(match?.[0] ?? '');
     const list = (v: unknown) => (Array.isArray(v) ? v.map(String) : []);
+    const clamp = (v: unknown, max: number) => Math.min(max, Math.max(1, Math.round(Number(v)) || 1));
+    const dimensions = DIMENSIONS.filter((key) => data.dimensions?.[key]).map((key) => ({
+      key,
+      score: clamp(data.dimensions[key].score, 5),
+      note: String(data.dimensions[key].note ?? ''),
+    }));
     return {
-      score: Math.min(10, Math.max(1, Math.round(Number(data.score)) || 1)),
+      score: clamp(data.score, 10),
       verdict: String(data.verdict ?? ''),
       summary: String(data.summary ?? ''),
       strengths: list(data.strengths),
       improvements: list(data.improvements),
+      headline: data.headline ? String(data.headline) : undefined,
+      dimensions: dimensions.length ? dimensions : undefined,
+      nextStep: data.nextStep ? String(data.nextStep) : undefined,
     };
   } catch {
     // Model didn't return valid JSON: keep its text so the feedback isn't lost.

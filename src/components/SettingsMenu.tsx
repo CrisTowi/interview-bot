@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { DEFAULT_MODELS, DEFAULT_VOICES, useApp } from '../store';
 import type { CloudProvider, Lang, TtsProvider } from '../types';
 import { ChevronIcon } from './icons';
+import { ModelPicker } from './ModelPicker';
 import { SyncSection } from './SyncSection';
 import { Select, useLocalAiStatus } from './ui';
 
@@ -104,12 +105,16 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
                   value={cloud.apiKey}
                   onChange={(e) => setSettings({ cloud: { ...cloud, apiKey: e.target.value } })}
                 />
-                <input
-                  aria-label="Modelo"
-                  placeholder="Modelo"
-                  value={cloud.model}
-                  onChange={(e) => setSettings({ cloud: { ...cloud, model: e.target.value } })}
-                />
+                {cloud.provider === 'openrouter' ? (
+                  <ModelPicker value={cloud.model} onChange={(model) => setSettings({ cloud: { ...cloud, model } })} />
+                ) : (
+                  <input
+                    aria-label="Modelo"
+                    placeholder="Modelo"
+                    value={cloud.model}
+                    onChange={(e) => setSettings({ cloud: { ...cloud, model: e.target.value } })}
+                  />
+                )}
                 <p className="hint">
                   Se guarda en este navegador; solo se sincroniza si lo activas abajo.{' '}
                   <a href={KEY_LINKS[cloud.provider]} target="_blank" rel="noreferrer">

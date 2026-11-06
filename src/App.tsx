@@ -26,9 +26,13 @@ export function App() {
     <div className="app">
       <header className="topbar">
         {screen.name === 'interview' ? (
-          <span className="brand">interview-bot</span>
+          <span className="brand">
+            <img src="/favicon.svg" alt="" width={30} height={30} />
+            interview-bot
+          </span>
         ) : (
           <button className="brand" onClick={home}>
+            <img src="/favicon.svg" alt="" width={30} height={30} />
             interview-bot
           </button>
         )}
@@ -45,7 +49,14 @@ export function App() {
         />
       )}
       {screen.name === 'interview' && <Interview onEnd={(transcript) => setScreen({ name: 'summary', transcript })} />}
-      {screen.name === 'summary' && <Summary transcript={screen.transcript} existing={screen.existing} onHome={home} />}
+      {screen.name === 'summary' && (
+        <Summary
+          transcript={screen.transcript}
+          existing={screen.existing}
+          onHome={home}
+          onRetry={() => setScreen({ name: 'interview' })}
+        />
+      )}
     </div>
   );
 }

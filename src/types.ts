@@ -31,12 +31,20 @@ export interface ChatMessage {
   hidden?: boolean;
 }
 
+export type Dimension = 'structure' | 'specificity' | 'ownership' | 'impact' | 'scope' | 'communication';
+
 export interface Evaluation {
   score: number;
   verdict: string;
   summary: string;
   strengths: string[];
   improvements: string[];
+  /** The single most important takeaway, one sentence. Missing on sessions saved before it existed. */
+  headline?: string;
+  /** 1-5 per criterion, with a one-line justification. */
+  dimensions?: { key: Dimension; score: number; note: string }[];
+  /** One concrete exercise to practice before the next interview. */
+  nextStep?: string;
 }
 
 export interface SessionSummary extends Evaluation {
