@@ -1,0 +1,43 @@
+# interview-bot
+
+Simulador de entrevistas **behavioral** estilo Big Tech con IA (STAR, Leadership Principles, etc.). Privado: sin cuentas, sin base de datos y sin guardar nada en el servidor.
+
+## Cómo funciona
+
+- **Frontend estático** (Vite + React + TypeScript, Zustand). El perfil, los ajustes, las API keys y los resúmenes se guardan solo en el `localStorage` del navegador.
+- **Motor de IA intercambiable** (`src/engines/agent.ts` → `InterviewAgent`)
+  - Capa 1: Chrome Built-in AI (Gemini Nano, Prompt API). Local, gratis y privado.
+  - Capa 2: BYOK (OpenAI / Anthropic / Gemini) a través de `api/chat.ts`.
+- **Voz intercambiable** (`src/engines/voice.ts` → `VoiceEngine`)
+  - Capa 1: Web Speech API (`speechSynthesis`).
+  - Capa 2: OpenAI TTS / ElevenLabs a través de `api/tts.ts`.
+- **Dictado** opcional con `SpeechRecognition`. Ojo: en Chrome, ese audio lo procesan los servidores de Google.
+- **Contexto entre sesiones**: al terminar se genera una evaluación (score, fortalezas, puntos a mejorar), y las próximas entrevistas reciben los últimos 3 resúmenes en el prompt.
+
+Los archivos de `api/` son Vercel Functions sin estado: no tienen `console.*` ni almacenamiento, y la key solo vive en memoria durante la petición. Están en un único archivo cada una a propósito, sin imports locales.
+
+## Desarrollo
+
+```bash
+npm install
+npm run dev      # http://localhost:5173 (sirve también /api, no hace falta Vercel CLI)
+npm run build
+```
+
+## Deploy gratis en Vercel
+
+1. Sube el repo a GitHub.
+2. En [vercel.com/new](https://vercel.com/new) importa el repo. Vercel detecta Vite solo y no hace falta configurar variables de entorno.
+3. Deploy. El plan Hobby (gratis) alcanza: el sitio es estático y las funciones solo se ejecutan cuando alguien usa una key propia.
+
+O desde la terminal: `npx vercel`.
+
+## Chrome AI local
+
+Requiere Chrome de escritorio reciente con Gemini Nano. Si no aparece disponible, activa `chrome://flags/#prompt-api-for-gemini-nano` y reinicia. El modelo (~2 GB) se descarga la primera vez.
+
+## Roadmap
+
+- [x] Fase 1: MVP local, UI de preferencias por capas, proxy serverless BYOK
+- [x] Fase 2: resumen al final de cada sesión, inyectado en las siguientes
+- [ ] Fase 3: sync con Nostr (NIP-07 / NIP-44). Punto de integración: la opción `storage` de `persist` en `src/store.ts`.
