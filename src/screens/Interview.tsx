@@ -14,6 +14,7 @@ import { createAgent, type InterviewAgent } from '../engines/agent';
 import { useSpeechInput } from '../engines/speechInput';
 import { createVoice, type VoiceEngine } from '../engines/voice';
 import { buildSystemPrompt, focusTitle, kickoffMessage, pickInterviewerName } from '../lib/prompts';
+import { APP_NAME, useDocumentTitle } from '../lib/title';
 import { useApp } from '../store';
 import type { ChatMessage } from '../types';
 
@@ -46,6 +47,7 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
   const [error, setError] = useState('');
   const [download, setDownload] = useState<number | null>(null);
   const elapsed = useElapsed();
+  useDocumentTitle(`Entrevista con ${interviewerName} — ${APP_NAME}`);
   const mic = useSpeechInput(profile.lang, setInput);
   const [captions, setCaptions] = useState(true);
   const [transcriptOpen, setTranscriptOpen] = useState(false);

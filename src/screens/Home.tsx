@@ -1,6 +1,7 @@
 import { InlinePicker, type PickerOption } from '../components/InlinePicker';
 import { ScoreBadge, useEngineReady } from '../components/ui';
 import { FOCUS_LABELS, focusTitle } from '../lib/prompts';
+import { APP_NAME, useDocumentTitle } from '../lib/title';
 import { useApp } from '../store';
 import type { Company, Focus, SessionSummary, Seniority } from '../types';
 
@@ -41,6 +42,7 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
   const { profile, setProfile, settings, history } = useApp();
   const { ready, localStatus } = useEngineReady();
   const checking = settings.llm === 'local' && localStatus === 'checking';
+  useDocumentTitle(`${APP_NAME} — Practica entrevistas behavioral`);
 
   let status: string;
   if (settings.llm === 'cloud') {

@@ -3,6 +3,7 @@ import { SettingsMenu } from './components/SettingsMenu';
 import { Home } from './screens/Home';
 import { Interview } from './screens/Interview';
 import { Summary } from './screens/Summary';
+import { APP_NAME } from './lib/title';
 import { startSync } from './sync/nostrSync';
 import type { ChatMessage, SessionSummary } from './types';
 
@@ -29,7 +30,7 @@ export function App() {
         <header className="topbar">
           <button className="brand" onClick={home}>
             <img src="/favicon.svg" alt="" width={30} height={30} />
-            interview-bot
+            {APP_NAME}
           </button>
           <SettingsMenu open={menuOpen} onToggle={() => setMenuOpen((o) => !o)} onClose={closeMenu} />
         </header>

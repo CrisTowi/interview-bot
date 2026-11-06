@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createAgent } from '../engines/agent';
 import { buildSummaryPrompt, focusTitle, parseEvaluation, transcriptText } from '../lib/prompts';
+import { APP_NAME, useDocumentTitle } from '../lib/title';
 import { useApp } from '../store';
 import type { ChatMessage, Dimension, SessionSummary } from '../types';
 
@@ -45,6 +46,11 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
   const [summary, setSummary] = useState<SessionSummary | undefined>(existing);
   const [error, setError] = useState('');
   const answered = transcript?.some((m) => m.role === 'user' && !m.hidden) ?? false;
+  useDocumentTitle(
+    summary?.score
+      ? `Resultado: ${VERDICTS[verdictIndex(summary.verdict, summary.score)].label} — ${APP_NAME}`
+      : `Resultado — ${APP_NAME}`,
+  );
 
   async function evaluate() {
     if (!transcript) return;
