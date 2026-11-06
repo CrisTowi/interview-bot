@@ -1432,3 +1432,41 @@ code {
 .menu-group .muted-link {
   color: var(--muted);
 }
+
+/* Collapsible sync header: a one-line status, details on demand. */
+.sync-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+}
+.sync-toggle-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--muted);
+}
+.sync-toggle-top svg {
+  transition: transform 150ms ease;
+}
+.sync-toggle[aria-expanded='true'] .sync-toggle-top svg {
+  transform: rotate(180deg);
+}
+.sync-toggle:hover .sync-toggle-top {
+  color: var(--ink);
+}
+.sync-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+.sync-summary .dot {
+  transform: translateY(-1px);
+}
