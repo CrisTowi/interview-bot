@@ -1695,3 +1695,37 @@ code {
 .menu > div:last-child > .overview-row:last-child {
   border-bottom: 0;
 }
+
+/* ---------- App language switch (top bar) ---------- */
+
+.lang-switch {
+  display: inline-flex;
+  padding: 2px;
+  margin-right: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.lang-switch button {
+  height: 26px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.lang-switch button.active {
+  background: var(--line);
+  color: var(--ink);
+}
+/* Narrow phones: tighten the top bar so logo, language, Perfil and Ajustes fit on one line. */
+@media (max-width: 400px) {
+  .topbar-actions .ghost {
+    padding: 0 6px;
+  }
+  .topbar-actions .ghost svg {
+    display: none;
+  }
+}

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { createAgent } from '../engines/agent';
 import { buildCvSummaryPrompt, extractText } from '../lib/cv';
+import { useT } from '../i18n';
 import { useApp } from '../store';
 import { Dropdown } from './Dropdown';
 import { useEngineReady } from './ui';
@@ -36,6 +37,7 @@ function Briefing({ text }: { text: string }) {
 export function ProfileCard({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { profile, settings, setProfile } = useApp();
   const { ready } = useEngineReady();
+  const t = useT();
   const [mode, setMode] = useState<Mode>('choose');
   const [replacing, setReplacing] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -48,9 +50,9 @@ export function ProfileCard({ onOpenSettings }: { onOpenSettings: () => void }) 
     setError('');
     const agent = createAgent(settings, profile.lang);
     try {
-      setStep('Leyendo tu perfil…');
+      setStep(t.profile.reading);
       const text = await readText();
-      setStep('Preparando tu ficha para el entrevistador…');
+      setStep(t.profile.preparing);
       const briefing = (await agent.reply(buildCvSummaryPrompt(profile.lang), [{ role: 'user', content: text }]))
         .replace(/\*\*/g, '')
         .trim();
@@ -59,7 +61,7 @@ export function ProfileCard({ onOpenSettings }: { onOpenSettings: () => void }) 
       setReplacing(false);
       setPasted('');
     } catch (err) {
-      setError((err as Error).message || 'No pudimos leer tu perfil.');
+      setError((err as Error).message || t.profile.readFailed);
     } finally {
       agent.destroy();
       setStep('');
@@ -84,10 +86,10 @@ export function ProfileCard({ onOpenSettings }: { onOpenSettings: () => void }) 
       />
 
       <div className="profile-head">
-        <span className="menu-label">Tu perfil</span>
+        <span className="menu-label">{t.profile.title}</span>
         {hasBriefing && profile.cvSource && (
           <span className="profile-source">
-            {profile.cvSource.name}, {new Date(profile.cvSource.date).toLocaleDateString()}
+            {profile.cvSource.name}, {new Date(profile.cvSource.date).toLocaleDateString(t.locale)}
           </span>
         )}
       </div>
@@ -110,72 +112,62 @@ export function ProfileCard({ onOpenSettings }: { onOpenSettings: () => void }) 
           )}
           <div className="profile-actions">
             <button className="link" onClick={() => setEditing(!editing)}>
-              {editing ? 'Listo' : 'Corregir'}
+              {editing ? t.profile.done : t.profile.fix}
             </button>
             <button className="link" onClick={() => setReplacing(true)}>
-              Reemplazar
+              {t.profile.replace}
             </button>
             <button
               className="link muted-link"
-              onClick={() =>
-                confirm('¿Quitar tu perfil? El entrevistador ya no lo usará.') &&
-                setProfile({ cvSummary: '', cvSource: undefined })
-              }
+              onClick={() => confirm(t.profile.confirmRemove) && setProfile({ cvSummary: '', cvSource: undefined })}
             >
-              Quitar
+              {t.profile.remove}
             </button>
           </div>
-          <p className="hint">
-            El entrevistador preguntará por tus experiencias reales. Solo guardamos esta ficha, no tu archivo.
-          </p>
+          <p className="hint">{t.profile.usedHint}</p>
         </>
       ) : (
         <>
-          <p className="profile-lead">
-            Comparte tu CV o tu perfil de LinkedIn y el entrevistador te preguntará por tus proyectos y roles reales, no
-            por situaciones genéricas.
-          </p>
+          <p className="profile-lead">{t.profile.lead}</p>
 
           {!ready ? (
             <p className="hint">
-              Primero elige un motor de IA para leer tu perfil.{' '}
+              {t.profile.needEngine}{' '}
               <button className="link" onClick={onOpenSettings}>
-                Abrir Ajustes
+                {t.profile.openSettings}
               </button>
             </p>
           ) : mode === 'choose' ? (
             <div className="profile-options">
               <button className="option" onClick={() => fileInput.current?.click()}>
-                <strong>Subir mi CV</strong>
-                <span>PDF o texto</span>
+                <strong>{t.profile.uploadCv}</strong>
+                <span>{t.profile.uploadCvSub}</span>
               </button>
               <button className="option" onClick={() => setMode('linkedin')}>
-                <strong>Usar mi LinkedIn</strong>
-                <span>Con el PDF de tu perfil</span>
+                <strong>{t.profile.useLinkedin}</strong>
+                <span>{t.profile.useLinkedinSub}</span>
               </button>
               <button className="option" onClick={() => setMode('paste')}>
-                <strong>Pegar texto</strong>
-                <span>Tu resumen o experiencia</span>
+                <strong>{t.profile.pasteText}</strong>
+                <span>{t.profile.pasteTextSub}</span>
               </button>
             </div>
           ) : mode === 'linkedin' ? (
             <div className="profile-panel">
               <ol className="linkedin-steps">
-                <li>Abre tu perfil de LinkedIn en una computadora.</li>
-                <li>
-                  Pulsa <strong>Más</strong> (o <strong>Recursos</strong>) y luego <strong>Guardar en PDF</strong>.
-                </li>
-                <li>Sube aquí el PDF que se descargó.</li>
+                {t.profile.linkedinSteps.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
               </ol>
               <div className="row">
                 <button className="primary" onClick={() => fileInput.current?.click()}>
-                  Subir el PDF de LinkedIn
+                  {t.profile.uploadLinkedin}
                 </button>
                 <button className="link" onClick={() => setMode('choose')}>
-                  Volver
+                  {t.common.back}
                 </button>
               </div>
-              <p className="hint">LinkedIn no permite leer perfiles desde su enlace, por eso usamos el PDF.</p>
+              <p className="hint">{t.profile.linkedinWhy}</p>
             </div>
           ) : (
             <div className="profile-panel">
@@ -184,18 +176,18 @@ export function ProfileCard({ onOpenSettings }: { onOpenSettings: () => void }) 
                 autoFocus
                 value={pasted}
                 onChange={(e) => setPasted(e.target.value)}
-                placeholder="Pega tu experiencia: roles, proyectos, logros…"
+                placeholder={t.profile.pastePlaceholder}
               />
               <div className="row">
                 <button
                   className="primary"
                   disabled={pasted.trim().length < 80}
-                  onClick={() => summarize('texto pegado', async () => pasted.trim())}
+                  onClick={() => summarize(t.profile.pastedSource, async () => pasted.trim())}
                 >
-                  Preparar mi ficha
+                  {t.profile.prepare}
                 </button>
                 <button className="link" onClick={() => setMode('choose')}>
-                  Volver
+                  {t.common.back}
                 </button>
               </div>
             </div>
@@ -203,31 +195,28 @@ export function ProfileCard({ onOpenSettings }: { onOpenSettings: () => void }) 
 
           {replacing && (
             <button className="link" onClick={() => setReplacing(false)}>
-              Mantener mi ficha actual
+              {t.profile.keepCurrent}
             </button>
           )}
-          <p className="hint">
-            Tu archivo se lee en tu navegador y nunca se sube. Su texto se envía al motor de IA que elegiste para
-            resumirlo.
-          </p>
+          <p className="hint">{t.profile.privacy}</p>
         </>
       )}
 
       {error && <p className="error">{error}</p>}
 
       <details className="profile-notes">
-        <summary>Notas para el entrevistador</summary>
+        <summary>{t.profile.notes}</summary>
         <textarea
           rows={3}
           value={profile.background}
           onChange={(e) => setProfile({ background: e.target.value })}
-          placeholder="Ej.: busco mi primer rol de Staff; quiero practicar historias de conflicto con producto."
+          placeholder={t.profile.notesPlaceholder}
         />
         <input
           value={profile.salary}
           onChange={(e) => setProfile({ salary: e.target.value })}
-          placeholder="Expectativa salarial (opcional)"
-          aria-label="Expectativa salarial"
+          placeholder={t.profile.salary}
+          aria-label={t.profile.salaryLabel}
         />
       </details>
     </section>
@@ -247,15 +236,16 @@ export function ProfileMenu({
   onOpenSettings: () => void;
 }) {
   const hasBriefing = useApp((s) => !!s.profile.cvSummary.trim());
+  const t = useT();
   return (
     <Dropdown
       label={
         <>
-          {hasBriefing && <span className="dot ok" aria-label="Usando tu CV" />}
-          Perfil
+          {hasBriefing && <span className="dot ok" aria-label={t.topbar.usingCv} />}
+          {t.topbar.profile}
         </>
       }
-      title="Tu perfil"
+      title={t.profile.title}
       open={open}
       onToggle={onToggle}
       onClose={onClose}

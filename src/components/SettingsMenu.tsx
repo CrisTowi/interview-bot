@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { useT } from '../i18n';
 import { DEFAULT_MODELS, DEFAULT_VOICES, useApp } from '../store';
 import type { CloudProvider, Lang, TtsProvider } from '../types';
 import { Dropdown } from './Dropdown';
@@ -9,19 +10,7 @@ import { Select, useLocalAiStatus, useMediaQuery } from './ui';
 type EngineChoice = 'local' | CloudProvider;
 type VoiceChoice = 'native' | 'off' | TtsProvider;
 
-const ENGINES = [
-  { value: 'local' as EngineChoice, label: 'Chrome AI (local, gratis)' },
-  { value: 'openai' as EngineChoice, label: 'OpenAI (tu API key)' },
-  { value: 'anthropic' as EngineChoice, label: 'Anthropic (tu API key)' },
-  { value: 'gemini' as EngineChoice, label: 'Gemini (tu API key)' },
-  { value: 'openrouter' as EngineChoice, label: 'OpenRouter (tu API key)' },
-];
-const VOICES = [
-  { value: 'native' as VoiceChoice, label: 'Voz del navegador' },
-  { value: 'openai' as VoiceChoice, label: 'OpenAI TTS (tu API key)' },
-  { value: 'elevenlabs' as VoiceChoice, label: 'ElevenLabs (tu API key)' },
-  { value: 'off' as VoiceChoice, label: 'Sin voz' },
-];
+// Endonyms: each language is named in itself, whatever the app language.
 const LANGS = [
   { value: 'es' as Lang, label: 'Español' },
   { value: 'en' as Lang, label: 'English' },
@@ -33,15 +22,6 @@ const KEY_LINKS: Record<CloudProvider | TtsProvider, string> = {
   openrouter: 'https://openrouter.ai/settings/keys',
   elevenlabs: 'https://elevenlabs.io/app/settings/api-keys',
 };
-const LOCAL_STATUS_TEXT = {
-  checking: 'Comprobando disponibilidad…',
-  available: 'Listo. Corre en tu equipo; nada sale de tu navegador.',
-  downloadable: 'Se descargará el modelo (~2 GB) al empezar la primera entrevista.',
-  downloading: 'Descargando el modelo…',
-  unavailable:
-    'No disponible aquí. Activa chrome://flags/#prompt-api-for-gemini-nano o elige un proveedor con API key.',
-};
-
 interface Props {
   open: boolean;
   onToggle: () => void;
@@ -49,12 +29,6 @@ interface Props {
 }
 
 type Section = 'engine' | 'voice' | 'sync';
-
-const SECTION_TITLES: Record<Section, string> = {
-  engine: 'Motor de IA',
-  voice: 'Voz e idioma',
-  sync: 'Sincronización',
-};
 
 const PROVIDER_LABELS: Record<CloudProvider, string> = {
   openai: 'OpenAI',
@@ -111,6 +85,21 @@ function OverviewRow({
  */
 export function SettingsMenu({ open, onToggle, onClose }: Props) {
   const { settings, setSettings, profile, setProfile } = useApp();
+  const t = useT();
+  const SECTION_TITLES: Record<Section, string> = t.settings.sections;
+  const ENGINES: { value: EngineChoice; label: string }[] = [
+    { value: 'local', label: t.settings.engineLocal },
+    ...(['openai', 'anthropic', 'gemini', 'openrouter'] as const).map((p) => ({
+      value: p,
+      label: t.common.withYourKey(PROVIDER_LABELS[p]),
+    })),
+  ];
+  const VOICES: { value: VoiceChoice; label: string }[] = [
+    { value: 'native', label: t.settings.voiceBrowser },
+    { value: 'openai', label: t.common.withYourKey('OpenAI TTS') },
+    { value: 'elevenlabs', label: t.common.withYourKey('ElevenLabs') },
+    { value: 'off', label: t.settings.voiceOff },
+  ];
   const localStatus = useLocalAiStatus();
   const sync = useSyncOverview();
   const [section, setSection] = useState<Section | null>(null);
@@ -144,10 +133,10 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
   if (settings.llm === 'local') {
     engineSummary =
       localStatus === 'unavailable'
-        ? { value: 'Chrome AI no está disponible aquí', tone: 'warn' }
-        : { value: 'Chrome AI, en tu equipo', tone: 'ok' };
+        ? { value: t.settings.engineSummaryLocalUnavailable, tone: 'warn' }
+        : { value: t.settings.engineSummaryLocal, tone: 'ok' };
   } else if (!cloud.apiKey.trim()) {
-    engineSummary = { value: `${PROVIDER_LABELS[cloud.provider]}: falta tu API key`, tone: 'warn' };
+    engineSummary = { value: t.settings.engineSummaryMissingKey(PROVIDER_LABELS[cloud.provider]), tone: 'warn' };
   } else {
     engineSummary = { value: `${PROVIDER_LABELS[cloud.provider]}, ${cloud.model.split('/').pop()}`, tone: 'ok' };
   }
@@ -158,16 +147,16 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
   if (section === 'engine') {
     content = (
       <div className="menu-group">
-        <Select value={engine} options={ENGINES} onChange={chooseEngine} label="Motor de IA" />
+        <Select value={engine} options={ENGINES} onChange={chooseEngine} label={SECTION_TITLES.engine} />
         {settings.llm === 'local' ? (
-          <p className="hint">{LOCAL_STATUS_TEXT[localStatus]}</p>
+          <p className="hint">{t.settings.localStatus[localStatus]}</p>
         ) : (
           <>
             <input
               type="password"
               autoComplete="off"
-              aria-label="API key"
-              placeholder="API key"
+              aria-label={t.settings.apiKey}
+              placeholder={t.settings.apiKey}
               value={cloud.apiKey}
               onChange={(e) => setSettings({ cloud: { ...cloud, apiKey: e.target.value } })}
             />
@@ -175,16 +164,16 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
               <ModelPicker value={cloud.model} onChange={(model) => setSettings({ cloud: { ...cloud, model } })} />
             ) : (
               <input
-                aria-label="Modelo"
-                placeholder="Modelo"
+                aria-label={t.settings.model}
+                placeholder={t.settings.model}
                 value={cloud.model}
                 onChange={(e) => setSettings({ cloud: { ...cloud, model: e.target.value } })}
               />
             )}
             <p className="hint">
-              Se guarda en este navegador; solo se sincroniza si lo activas en Sincronización.{' '}
+              {t.settings.keyHint}{' '}
               <a href={KEY_LINKS[cloud.provider]} target="_blank" rel="noreferrer">
-                Obtener una key
+                {t.settings.getKey}
               </a>
             </p>
           </>
@@ -195,21 +184,21 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
     content = (
       <>
         <div className="menu-group">
-          <span className="menu-label">Voz del entrevistador</span>
-          <Select value={voice} options={VOICES} onChange={chooseVoice} label="Voz del entrevistador" />
+          <span className="menu-label">{t.settings.interviewerVoice}</span>
+          <Select value={voice} options={VOICES} onChange={chooseVoice} label={t.settings.interviewerVoice} />
           {settings.tts === 'premium' && (
             <>
               <input
                 type="password"
                 autoComplete="off"
-                aria-label="API key de voz"
-                placeholder="API key"
+                aria-label={t.settings.voiceKey}
+                placeholder={t.settings.apiKey}
                 value={premiumTts.apiKey}
                 onChange={(e) => setSettings({ premiumTts: { ...premiumTts, apiKey: e.target.value } })}
               />
               <input
-                aria-label="Voz"
-                placeholder={premiumTts.provider === 'openai' ? 'Voz (alloy, nova, onyx…)' : 'Voice ID'}
+                aria-label={t.settings.voice}
+                placeholder={premiumTts.provider === 'openai' ? t.settings.openaiVoicePlaceholder : t.settings.voiceId}
                 value={premiumTts.voice}
                 onChange={(e) => setSettings({ premiumTts: { ...premiumTts, voice: e.target.value } })}
               />
@@ -217,8 +206,13 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
           )}
         </div>
         <div className="menu-group">
-          <span className="menu-label">Idioma de la entrevista</span>
-          <Select value={profile.lang} options={LANGS} onChange={(lang) => setProfile({ lang })} label="Idioma" />
+          <span className="menu-label">{t.settings.interviewLang}</span>
+          <Select
+            value={profile.lang}
+            options={LANGS}
+            onChange={(lang) => setProfile({ lang })}
+            label={t.settings.interviewLang}
+          />
         </div>
       </>
     );
@@ -236,11 +230,11 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
     <Dropdown
       label={
         <>
-          {sync.needsAttention && <span className="dot warn" aria-label="Requiere tu atención" />}
-          Ajustes
+          {sync.needsAttention && <span className="dot warn" aria-label={t.topbar.needsAttention} />}
+          {t.topbar.settings}
         </>
       }
-      title="Ajustes"
+      title={t.topbar.settings}
       open={open}
       onToggle={onToggle}
       onClose={onClose}
@@ -250,7 +244,7 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
           <div className="flyout" role="dialog" aria-label={SECTION_TITLES[section]}>
             <div className="flyout-head">
               <h3>{SECTION_TITLES[section]}</h3>
-              <button className="icon-btn" onClick={() => setSection(null)} aria-label="Cerrar">
+              <button className="icon-btn" onClick={() => setSection(null)} aria-label={t.common.close}>
                 ✕
               </button>
             </div>

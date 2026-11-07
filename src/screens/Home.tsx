@@ -1,35 +1,13 @@
 import { InlinePicker, type PickerOption } from '../components/InlinePicker';
 import { ScoreBadge, useEngineReady } from '../components/ui';
-import { FOCUS_LABELS, focusTitle } from '../lib/prompts';
+import { capitalize, useT } from '../i18n';
 import { APP_NAME, useDocumentTitle } from '../lib/title';
 import { useApp } from '../store';
 import type { Company, Focus, SessionSummary, Seniority } from '../types';
 
-const SENIORITY: PickerOption<Seniority>[] = [
-  { value: 'Junior', label: 'Junior', hint: '0 a 2 años de experiencia' },
-  { value: 'Mid', label: 'Mid', hint: '2 a 5 años, trabajas con autonomía' },
-  { value: 'Senior', label: 'Senior', hint: '5+ años, lideras proyectos' },
-  { value: 'Staff', label: 'Staff', hint: 'Influyes en varios equipos' },
-];
-const COMPANIES: PickerOption<Company>[] = [
-  { value: 'Amazon', label: 'Amazon', hint: 'Leadership Principles y mucho detalle' },
-  { value: 'Google', label: 'Google', hint: 'Googleyness, colaboración y ambigüedad' },
-  { value: 'Meta', label: 'Meta', hint: 'Impacto, ritmo y conflictos' },
-  { value: 'Startup', label: 'una startup', hint: 'Ownership y pragmatismo' },
-];
-const FOCUS_HINTS: Record<Focus, string> = {
-  mixed: 'Un poco de todo, como una ronda real',
-  leadership: 'Influir sin autoridad, mentorear, decidir',
-  conflict: 'Desacuerdos con pares, jefes o stakeholders',
-  failure: 'Errores, feedback duro y qué cambiaste',
-  impact: 'Tus logros más grandes y cómo los mediste',
-  ambiguity: 'Decidir con información incompleta',
-};
-const FOCUSES: PickerOption<Focus>[] = (Object.keys(FOCUS_LABELS) as Focus[]).map((v) => ({
-  value: v,
-  label: FOCUS_LABELS[v],
-  hint: FOCUS_HINTS[v],
-}));
+const SENIORITIES: Seniority[] = ['Junior', 'Mid', 'Senior', 'Staff'];
+const COMPANIES: Company[] = ['Amazon', 'Google', 'Meta', 'Startup'];
+const FOCUSES: Focus[] = ['mixed', 'leadership', 'conflict', 'failure', 'impact', 'ambiguity'];
 const PROVIDER_LABELS = { openai: 'OpenAI', anthropic: 'Anthropic', gemini: 'Gemini', openrouter: 'OpenRouter' };
 
 interface Props {
@@ -41,37 +19,73 @@ interface Props {
 export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
   const { profile, setProfile, settings, history, clearHistory, nostr } = useApp();
   const { ready, localStatus } = useEngineReady();
+  const t = useT();
   const checking = settings.llm === 'local' && localStatus === 'checking';
-  useDocumentTitle(`${APP_NAME} — Practica entrevistas behavioral`);
+  useDocumentTitle(`${APP_NAME} — ${t.title.home}`);
+
+  const { seniorityHints, companyLabels, companyHints, focusLabels, focusHints } = t.options;
+  const seniorityOptions: PickerOption<Seniority>[] = SENIORITIES.map((v) => ({
+    value: v,
+    label: v,
+    hint: seniorityHints[v],
+  }));
+  const companyOptions: PickerOption<Company>[] = COMPANIES.map((v) => ({
+    value: v,
+    label: companyLabels[v],
+    hint: companyHints[v],
+  }));
+  const focusOptions: PickerOption<Focus>[] = FOCUSES.map((v) => ({
+    value: v,
+    label: focusLabels[v],
+    hint: focusHints[v],
+  }));
 
   let status: string;
   if (settings.llm === 'cloud') {
-    status = ready ? `Usando ${PROVIDER_LABELS[settings.cloud.provider]}` : 'Falta tu API key';
+    status = ready ? t.home.usingProvider(PROVIDER_LABELS[settings.cloud.provider]) : t.home.missingKey;
   } else if (localStatus === 'checking') {
-    status = 'Comprobando Chrome AI';
+    status = t.home.checkingLocal;
   } else if (localStatus === 'unavailable') {
-    status = 'Chrome AI no está disponible en este navegador';
+    status = t.home.localUnavailable;
   } else {
-    status = 'Usando Chrome AI en tu equipo';
+    status = t.home.usingLocal;
   }
+
+  const [beforeLevel, levelToRole, roleToCompany, companyToFocus, afterFocus] = t.home.sentence;
 
   return (
     <main className="home">
       <p className="sentence">
-        Practica una entrevista behavioral de nivel{' '}
-        <InlinePicker label="Nivel" value={profile.seniority} options={SENIORITY} onChange={(seniority) => setProfile({ seniority })} />{' '}
-        para{' '}
+        {beforeLevel}{' '}
+        <InlinePicker
+          label={t.home.level}
+          value={profile.seniority}
+          options={seniorityOptions}
+          onChange={(seniority) => setProfile({ seniority })}
+        />{' '}
+        {levelToRole}{' '}
         <input
           className="inline-input"
-          aria-label="Puesto"
+          aria-label={t.home.role}
           value={profile.role}
           onChange={(e) => setProfile({ role: e.target.value })}
-          placeholder="tu puesto"
+          placeholder={t.home.rolePlaceholder}
         />{' '}
-        al estilo de{' '}
-        <InlinePicker label="Empresa" value={profile.company} options={COMPANIES} onChange={(company) => setProfile({ company })} />
-        , sobre{' '}
-        <InlinePicker label="Enfoque" value={profile.focus} options={FOCUSES} onChange={(focus) => setProfile({ focus })} />.
+        {roleToCompany}{' '}
+        <InlinePicker
+          label={t.home.company}
+          value={profile.company}
+          options={companyOptions}
+          onChange={(company) => setProfile({ company })}
+        />
+        {companyToFocus}{' '}
+        <InlinePicker
+          label={t.home.focus}
+          value={profile.focus}
+          options={focusOptions}
+          onChange={(focus) => setProfile({ focus })}
+        />
+        {afterFocus}
       </p>
 
       <div className="start">
@@ -80,35 +94,26 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
           disabled={!profile.role.trim() || checking}
           onClick={ready ? onStart : onOpenSettings}
         >
-          {ready || checking ? 'Empezar entrevista' : 'Elegir motor de IA'}
+          {ready || checking ? t.home.start : t.home.chooseEngine}
         </button>
         <p className="status">
           <span className={`dot ${ready ? 'ok' : checking ? '' : 'warn'}`} />
           {status}.{' '}
           <button className="link" onClick={onOpenSettings}>
-            Cambiar
+            {t.home.change}
           </button>
         </p>
       </div>
 
-
       {history.length > 0 && (
         <section className="history">
           <div className="history-head">
-            <h2>Sesiones anteriores</h2>
+            <h2>{t.home.history}</h2>
             <button
               className="link muted-link"
-              onClick={() => {
-                const where =
-                  nostr.mode === 'none'
-                    ? 'de este navegador'
-                    : 'de este navegador y de tus otros dispositivos sincronizados';
-                if (confirm(`¿Borrar tus ${history.length} sesiones anteriores ${where}? No se puede deshacer.`)) {
-                  clearHistory();
-                }
-              }}
+              onClick={() => confirm(t.home.confirmClear(history.length, nostr.mode !== 'none')) && clearHistory()}
             >
-              Borrar historial
+              {t.home.clearHistory}
             </button>
           </div>
           <ul>
@@ -116,9 +121,9 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
               <li key={s.id}>
                 <button className="history-item" onClick={() => onViewSummary(s)}>
                   <span className="history-main">
-                    {focusTitle(s.focus)}, {s.company}
+                    {capitalize(focusLabels[s.focus] ?? focusLabels.mixed)}, {s.company}
                     <small>
-                      {s.seniority} {s.role}, {new Date(s.date).toLocaleDateString()}
+                      {s.seniority} {s.role}, {new Date(s.date).toLocaleDateString(t.locale)}
                     </small>
                   </span>
                   <ScoreBadge score={s.score} />

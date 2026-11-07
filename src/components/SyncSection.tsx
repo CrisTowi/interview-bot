@@ -15,24 +15,21 @@ import {
 } from '../sync/nostrSync';
 import { hasExtension } from '../sync/signer';
 import { fingerprint } from '../sync/vault';
+import { useT } from '../i18n';
 import { useApp } from '../store';
 
 /** How API keys stand on this device, which decides what (if anything) we ask for. */
 type KeyState = 'off' | 'synced' | 'needs-unlock' | 'needs-update';
 
 function HowItWorks() {
+  const t = useT();
   return (
     <details className="how">
-      <summary>¿Cómo funciona?</summary>
+      <summary>{t.sync.howTitle}</summary>
       <ul>
-        <li>
-          Usas una <strong>clave de Nostr</strong>: hace de usuario y contraseña a la vez, sin registrarte en ningún
-          sitio.
-        </li>
-        <li>
-          Tus datos se cifran en tu navegador antes de salir. Los servidores que los guardan solo ven texto ilegible.
-        </li>
-        <li>Para continuar en otro dispositivo, entra ahí con la misma clave.</li>
+        {t.sync.how.map((line) => (
+          <li key={line}>{line}</li>
+        ))}
       </ul>
     </details>
   );
@@ -56,6 +53,7 @@ export function useSyncOverview() {
   const cloudKey = useApp((s) => s.settings.cloud.apiKey);
   const ttsKey = useApp((s) => s.settings.premiumTts.apiKey);
   const { status, vaultLocked } = useSync();
+  const t = useT();
   const [localFingerprint, setLocalFingerprint] = useState<string | null>(null);
 
   useEffect(() => {
@@ -69,15 +67,15 @@ export function useSyncOverview() {
   else keyState = localFingerprint && localFingerprint === nostr.keysFingerprint ? 'synced' : 'needs-update';
 
   let summary: { text: string; tone: string };
-  if (nostr.mode === 'none') summary = { text: 'Desactivada: tus datos solo están en este navegador', tone: '' };
-  else if (status === 'error') summary = { text: 'No se pudo sincronizar', tone: 'warn' };
-  else if (status !== 'synced') summary = { text: 'Sincronizando tus datos…', tone: '' };
+  if (nostr.mode === 'none') summary = { text: t.sync.summaryOff, tone: '' };
+  else if (status === 'error') summary = { text: t.sync.summaryError, tone: 'warn' };
+  else if (status !== 'synced') summary = { text: t.sync.summarySyncing, tone: '' };
   else
     summary = {
-      synced: { text: 'Perfil, historial y API keys al día', tone: 'ok' },
-      off: { text: 'Perfil e historial al día; las API keys solo están en este navegador', tone: 'ok' },
-      'needs-unlock': { text: 'Falta tu contraseña para traer las API keys', tone: 'warn' },
-      'needs-update': { text: 'Tus API keys cambiaron y falta actualizarlas', tone: 'warn' },
+      synced: { text: t.sync.summarySynced, tone: 'ok' },
+      off: { text: t.sync.summaryKeysLocal, tone: 'ok' },
+      'needs-unlock': { text: t.sync.summaryNeedsUnlock, tone: 'warn' },
+      'needs-update': { text: t.sync.summaryNeedsUpdate, tone: 'warn' },
     }[keyState];
 
   return { keyState, summary, needsAttention: summary.tone === 'warn' };
@@ -86,6 +84,7 @@ export function useSyncOverview() {
 export function SyncSection() {
   const nostr = useApp((s) => s.nostr);
   const { status, error } = useSync();
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [importing, setImporting] = useState(false);
@@ -118,17 +117,15 @@ export function SyncSection() {
           <span className={`dot ${summary.tone}`} />
           {summary.text}
         </p>
-        <p className="sync-lead">
-          Usa tu perfil y tu historial de entrevistas en cualquier dispositivo, sin registrarte en ningún servidor.
-        </p>
+        <p className="sync-lead">{t.sync.lead}</p>
         <HowItWorks />
         {hasExtension() && (
           <button className="secondary" disabled={busy} onClick={() => run(connectExtension)}>
-            Conectar con mi extensión (nos2x, Alby…)
+            {t.sync.connectExtension}
           </button>
         )}
         <button className="secondary" disabled={busy} onClick={() => run(createLocalIdentity)}>
-          Crear mi clave
+          {t.sync.createKey}
         </button>
         {importing ? (
           <form
@@ -146,12 +143,12 @@ export function SyncSection() {
               onChange={(e) => setNsec(e.target.value)}
             />
             <button className="secondary" disabled={busy || !nsec.trim()}>
-              Entrar
+              {t.sync.enter}
             </button>
           </form>
         ) : (
           <button className="link" onClick={() => setImporting(true)}>
-            Ya tengo una clave (nsec)
+            {t.sync.haveKey}
           </button>
         )}
         {message && <p className="error">{message}</p>}
@@ -159,12 +156,7 @@ export function SyncSection() {
     );
   }
 
-  const keyDetail = {
-    off: 'Solo en este navegador',
-    synced: 'Con tu contraseña',
-    'needs-unlock': 'Falta tu contraseña',
-    'needs-update': 'Sin actualizar',
-  }[keyState];
+  const keyDetail = t.sync.keyDetail[keyState];
 
   function forgotPassword() {
     disableKeySync();
@@ -174,7 +166,7 @@ export function SyncSection() {
 
   function submitNewPassword(e: FormEvent) {
     e.preventDefault();
-    if (password !== confirmation) return setMessage('Las contraseñas no coinciden.');
+    if (password !== confirmation) return setMessage(t.sync.passwordsMismatch);
     run(() => {
       enableKeySync(password);
       setCreatingPassword(false);
@@ -193,61 +185,58 @@ export function SyncSection() {
         <p className="error">
           {error}{' '}
           <button className="link" onClick={() => startSync()}>
-            Reintentar
+            {t.common.retry}
           </button>
         </p>
       )}
 
-      <ul className="sync-list" aria-label="Qué se sincroniza">
-        <SyncedItem on>Perfil y preferencias</SyncedItem>
-        <SyncedItem on>Historial de entrevistas</SyncedItem>
+      <ul className="sync-list" aria-label={t.sync.whatSyncs}>
+        <SyncedItem on>{t.sync.itemProfile}</SyncedItem>
+        <SyncedItem on>{t.sync.itemHistory}</SyncedItem>
         <SyncedItem on={keyState === 'synced'} detail={keyDetail}>
-          API keys
+          {t.sync.itemKeys}
         </SyncedItem>
       </ul>
 
       {keyState === 'off' &&
         (creatingPassword ? (
           <form className="key-box" onSubmit={submitNewPassword}>
-            <p>
-              Tus API keys se protegen con una <strong>contraseña extra</strong> que solo tú conoces: aunque alguien
-              obtuviera tu clave de Nostr, no podría leerlas. No la guardamos en ningún sitio.
-            </p>
+            <p>{t.sync.keyBoxIntro}</p>
             <input
               type="password"
               autoComplete="new-password"
-              placeholder="Contraseña para tus keys (mín. 8)"
+              placeholder={t.sync.newPassword}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
             <input
               type="password"
               autoComplete="new-password"
-              placeholder="Repítela"
+              placeholder={t.sync.repeatPassword}
               value={confirmation}
               onChange={(e) => setConfirmation(e.target.value)}
             />
             <div className="row">
               <button className="secondary" disabled={password.length < 8 || !confirmation}>
-                Sincronizar mis keys
+                {t.sync.syncMyKeys}
               </button>
               <button type="button" className="link" onClick={() => setCreatingPassword(false)}>
-                Cancelar
+                {t.common.cancel}
               </button>
             </div>
           </form>
         ) : (
           <>
-            <p className="hint">En otro dispositivo tendrás que volver a pegarlas.</p>
+            <p className="hint">{t.sync.repasteElsewhere}</p>
             <button className="link" onClick={() => setCreatingPassword(true)}>
-              Sincronizar también mis API keys
+              {t.sync.alsoSyncKeys}
             </button>
           </>
         ))}
 
       {keyState === 'synced' && (
         <button className="link" onClick={() => disableKeySync()}>
-          Dejar de sincronizar mis API keys
+          {t.sync.stopSyncKeys}
         </button>
       )}
 
@@ -259,29 +248,23 @@ export function SyncSection() {
             run(() => (keyState === 'needs-unlock' ? unlockKeys(password) : updateSyncedKeys(password)));
           }}
         >
-          <p>
-            {keyState === 'needs-unlock'
-              ? 'Tienes API keys guardadas desde otro dispositivo. Escribe la contraseña de tus keys para usarlas aquí.'
-              : 'Cambiaste tus API keys en este navegador. Escribe la contraseña de tus keys para actualizar la copia de tus otros dispositivos.'}
-          </p>
+          <p>{keyState === 'needs-unlock' ? t.sync.needsUnlockText : t.sync.needsUpdateText}</p>
           <div className="row">
             <input
               type="password"
               autoComplete="current-password"
-              placeholder="Contraseña de tus keys"
+              placeholder={t.sync.currentPassword}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
             <button className="secondary" disabled={busy || !password}>
-              {keyState === 'needs-unlock' ? 'Usar' : 'Actualizar'}
+              {keyState === 'needs-unlock' ? t.sync.use : t.sync.update}
             </button>
           </div>
           <button type="button" className="link" onClick={forgotPassword}>
-            ¿La olvidaste? Crea una nueva
+            {t.sync.forgot}
           </button>
-          {keyState === 'needs-unlock' && (
-            <p className="hint">Si creas una nueva, primero pega tus API keys arriba, en Motor de IA.</p>
-          )}
+          {keyState === 'needs-unlock' && <p className="hint">{t.sync.pasteFirst}</p>}
         </form>
       )}
 
@@ -289,34 +272,28 @@ export function SyncSection() {
 
       <div className="account">
         <p className="hint">
-          Tu clave Nostr <code>{shortNpub(nostr.pubkey)}</code>
-          {nostr.mode === 'extension' ? ', desde tu extensión.' : ', guardada en este navegador.'}
+          {t.sync.yourKey} <code>{shortNpub(nostr.pubkey)}</code>
+          {nostr.mode === 'extension' ? t.sync.fromExtension : t.sync.inBrowser}
         </p>
         {nostr.mode === 'local' &&
           (nsecValue ? (
             <>
               <code className="secret">{nsecValue}</code>
-              <p className="hint">
-                Esta es tu clave: guárdala en tu gestor de contraseñas y úsala para entrar en otro dispositivo. Quien la
-                tenga puede ver tu historial.
-              </p>
+              <p className="hint">{t.sync.nsecWarning}</p>
             </>
           ) : (
             <button className="link" onClick={() => setShowNsec(true)}>
-              Ver mi clave para entrar en otro dispositivo
+              {t.sync.showNsec}
             </button>
           ))}
         <button
           className="link muted-link"
           onClick={() => {
-            const warning =
-              nostr.mode === 'local'
-                ? '¿Dejar de sincronizar este dispositivo? Si no guardaste tu clave, no podrás recuperar tus datos sincronizados. Lo guardado en este navegador se mantiene.'
-                : '¿Dejar de sincronizar este dispositivo? Lo guardado en este navegador se mantiene.';
+            const warning = nostr.mode === 'local' ? t.sync.confirmStopLocal : t.sync.confirmStopExtension;
             if (confirm(warning)) disconnect();
           }}
         >
-          Dejar de sincronizar este dispositivo
+          {t.sync.stopDevice}
         </button>
       </div>
     </div>

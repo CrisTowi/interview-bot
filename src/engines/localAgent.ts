@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import type { ChatMessage, Lang } from '../types';
 import type { InterviewAgent } from './agent';
 
@@ -73,7 +74,7 @@ export class LocalAgent implements InterviewAgent {
 
   private async createSession(system: string, prior: ChatMessage[]): Promise<LMSession> {
     const api = getApi();
-    if (!api) throw new Error('Chrome Built-in AI no está disponible en este navegador.');
+    if (!api) throw new Error(t().interview.localUnavailable);
     const onProgress = this.onDownloadProgress;
     const base = {
       initialPrompts: [{ role: 'system', content: system }, ...prior.map(({ role, content }) => ({ role, content }))],

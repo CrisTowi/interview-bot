@@ -1,13 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchOpenRouterModels, interviewCostLabel, priceLabel, type ModelOption } from '../lib/openrouter';
+import { useT } from '../i18n';
 import { ChevronIcon } from './icons';
 
 type Filter = 'all' | 'free' | 'paid';
-const FILTERS: { value: Filter; label: string }[] = [
-  { value: 'all', label: 'Todos' },
-  { value: 'free', label: 'Gratis' },
-  { value: 'paid', label: 'De pago' },
-];
 
 /** Searchable list of OpenRouter models with prices; falls back to a text field if the catalog can't load. */
 export function ModelPicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
@@ -16,6 +12,12 @@ export function ModelPicker({ value, onChange }: { value: string; onChange: (id:
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
+  const t = useT();
+  const FILTERS: { value: Filter; label: string }[] = [
+    { value: 'all', label: t.models.all },
+    { value: 'free', label: t.models.free },
+    { value: 'paid', label: t.models.paid },
+  ];
 
   useEffect(() => {
     fetchOpenRouterModels().then(setModels, () => setFailed(true));
@@ -31,7 +33,14 @@ export function ModelPicker({ value, onChange }: { value: string; onChange: (id:
   }, [models, query, filter]);
 
   if (failed) {
-    return <input aria-label="Modelo" placeholder="Modelo (ej. anthropic/claude-sonnet-5.5)" value={value} onChange={(e) => onChange(e.target.value)} />;
+    return (
+      <input
+        aria-label={t.settings.model}
+        placeholder={t.models.fallbackPlaceholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    );
   }
 
   const selected = models?.find((m) => m.id === value);
@@ -41,7 +50,7 @@ export function ModelPicker({ value, onChange }: { value: string; onChange: (id:
     <div className="model-picker">
       <button type="button" className="model-current" aria-expanded={open} onClick={() => setOpen(!open)}>
         <span className="model-text">
-          <span className="model-name">{selected?.name ?? (models ? value : 'Cargando modelos…')}</span>
+          <span className="model-name">{selected?.name ?? (models ? value : t.models.loading)}</span>
           {selected && (
             <span className="model-price">
               {priceLabel(selected)}
@@ -54,8 +63,14 @@ export function ModelPicker({ value, onChange }: { value: string; onChange: (id:
 
       {open && models && (
         <div className="model-panel">
-          <input autoFocus placeholder="Buscar modelo…" aria-label="Buscar modelo" value={query} onChange={(e) => setQuery(e.target.value)} />
-          <div className="chips" role="radiogroup" aria-label="Filtrar por precio">
+          <input
+            autoFocus
+            placeholder={t.models.search}
+            aria-label={t.models.searchLabel}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <div className="chips" role="radiogroup" aria-label={t.models.filterLabel}>
             {FILTERS.map((f) => (
               <button
                 key={f.value}
@@ -69,7 +84,7 @@ export function ModelPicker({ value, onChange }: { value: string; onChange: (id:
               </button>
             ))}
           </div>
-          <ul className="model-list" role="listbox" aria-label="Modelos">
+          <ul className="model-list" role="listbox" aria-label={t.models.listLabel}>
             {visible.map((m) => (
               <li key={m.id}>
                 <button
@@ -87,11 +102,9 @@ export function ModelPicker({ value, onChange }: { value: string; onChange: (id:
                 </button>
               </li>
             ))}
-            {visible.length === 0 && <li className="hint">Ningún modelo coincide.</li>}
+            {visible.length === 0 && <li className="hint">{t.models.none}</li>}
           </ul>
-          <p className="hint">
-            Los modelos gratis tienen límites de uso y algunos pueden usar tus conversaciones para entrenar. Precios: entrada / salida.
-          </p>
+          <p className="hint">{t.models.note}</p>
         </div>
       )}
     </div>

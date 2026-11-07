@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import * as nip19 from 'nostr-tools/nip19';
 import { SimplePool } from 'nostr-tools/pool';
 import { generateSecretKey } from 'nostr-tools/pure';
@@ -40,8 +41,8 @@ let lastCreatedAt = 0;
 const getPool = () => (pool ??= new SimplePool());
 
 function fail(err: unknown) {
-  const error = err instanceof AggregateError ? 'Ningún relay aceptó los datos. Revisa tu conexión.' : (err as Error).message;
-  useSync.setState({ status: 'error', error: error || 'Error de sincronización.' });
+  const error = err instanceof AggregateError ? t().sync.errorNoRelay : (err as Error).message;
+  useSync.setState({ status: 'error', error: error || t().sync.errorGeneric });
 }
 
 function withoutKeys(settings: Settings): Settings {
@@ -156,7 +157,8 @@ export async function startSync(initial = false, prebuilt?: Signer) {
   if (nostr.mode === 'none') return;
   useSync.setState({ status: 'connecting', error: '' });
   try {
-    const current = prebuilt ?? (nostr.mode === 'local' && nostr.secretKey ? localSigner(nostr.secretKey) : await extensionSigner());
+    const current =
+      prebuilt ?? (nostr.mode === 'local' && nostr.secretKey ? localSigner(nostr.secretKey) : await extensionSigner());
     if (current.pubkey !== nostr.pubkey) {
       // The extension switched accounts: the old vault belongs to someone else.
       useApp.getState().setNostr({ pubkey: current.pubkey, syncKeys: false, vault: undefined });
@@ -176,13 +178,17 @@ export async function startSync(initial = false, prebuilt?: Signer) {
 
 export async function connectExtension() {
   const s = await extensionSigner();
-  useApp.getState().setNostr({ mode: 'extension', pubkey: s.pubkey, secretKey: undefined, syncKeys: false, vault: undefined });
+  useApp
+    .getState()
+    .setNostr({ mode: 'extension', pubkey: s.pubkey, secretKey: undefined, syncKeys: false, vault: undefined });
   await startSync(true, s);
 }
 
 async function connectLocal(secretKeyHex: string) {
   const s = localSigner(secretKeyHex);
-  useApp.getState().setNostr({ mode: 'local', pubkey: s.pubkey, secretKey: secretKeyHex, syncKeys: false, vault: undefined });
+  useApp
+    .getState()
+    .setNostr({ mode: 'local', pubkey: s.pubkey, secretKey: secretKeyHex, syncKeys: false, vault: undefined });
   await startSync(true, s);
 }
 
@@ -195,9 +201,9 @@ export function importNsec(nsec: string) {
   try {
     decoded = nip19.decode(nsec.trim());
   } catch {
-    throw new Error('Esa clave no es válida. Debe empezar con nsec1.');
+    throw new Error(t().sync.errorBadNsec);
   }
-  if (decoded.type !== 'nsec') throw new Error('Pega tu clave privada (nsec1…), no la pública.');
+  if (decoded.type !== 'nsec') throw new Error(t().sync.errorPublicKey);
   return connectLocal(bytesToHex(decoded.data));
 }
 

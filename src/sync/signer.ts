@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import type { EventTemplate, VerifiedEvent } from 'nostr-tools/core';
 import * as nip44 from 'nostr-tools/nip44';
 import type { WindowNostr } from 'nostr-tools/nip07';
@@ -43,9 +44,9 @@ async function waitForExtension(timeoutMs = 2000): Promise<WindowNostr | undefin
 
 export async function extensionSigner(): Promise<Signer> {
   const ext = await waitForExtension();
-  if (!ext) throw new Error('No se encontró una extensión de Nostr (Alby, nos2x…).');
+  if (!ext) throw new Error(t().sync.errorNoExtension);
   const crypto = ext.nip44;
-  if (!crypto) throw new Error('Tu extensión de Nostr no soporta cifrado NIP-44. Actualízala o usa otra.');
+  if (!crypto) throw new Error(t().sync.errorNoNip44);
   const pubkey = await ext.getPublicKey();
   return {
     pubkey,

@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import type { Lang } from '../types';
 
 /** Long CVs are trimmed so they fit small models (e.g. Chrome's local Gemini Nano). */
@@ -10,9 +11,12 @@ const MAX_CV_CHARS = 15_000;
 export async function extractText(file: File): Promise<string> {
   const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
   const text = isPdf ? await pdfText(file) : await file.text();
-  const clean = text.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  const clean = text
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
   if (clean.length < 80) {
-    throw new Error('No encontramos texto en ese archivo. Si es un PDF escaneado (una imagen), pega el texto en su lugar.');
+    throw new Error(t().profile.errorNoText);
   }
   return clean.slice(0, MAX_CV_CHARS);
 }

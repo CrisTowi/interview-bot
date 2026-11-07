@@ -13,7 +13,8 @@ import {
 import { createAgent, type InterviewAgent } from '../engines/agent';
 import { useSpeechInput } from '../engines/speechInput';
 import { createVoice, type VoiceEngine } from '../engines/voice';
-import { buildSystemPrompt, focusTitle, kickoffMessage, pickInterviewerName } from '../lib/prompts';
+import { capitalize, useT } from '../i18n';
+import { buildSystemPrompt, kickoffMessage, pickInterviewerName } from '../lib/prompts';
 import { APP_NAME, useDocumentTitle } from '../lib/title';
 import { useApp } from '../store';
 import type { ChatMessage } from '../types';
@@ -47,7 +48,8 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
   const [error, setError] = useState('');
   const [download, setDownload] = useState<number | null>(null);
   const elapsed = useElapsed();
-  useDocumentTitle(`Entrevista con ${interviewerName} — ${APP_NAME}`);
+  const t = useT();
+  useDocumentTitle(`${t.title.interview(interviewerName)} — ${APP_NAME}`);
   const mic = useSpeechInput(profile.lang, setInput);
   const [captions, setCaptions] = useState(true);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
@@ -85,7 +87,7 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
     try {
       await voice.current.speak(text);
     } catch (err) {
-      if (mounted.current) setError(`No se pudo reproducir la voz: ${(err as Error).message}`);
+      if (mounted.current) setError(t.interview.voiceError((err as Error).message));
     } finally {
       if (mounted.current) setSpeaking(false);
     }
@@ -104,7 +106,7 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
     } catch (err) {
       if (!mounted.current) return;
       setThinking(false);
-      setError((err as Error).message || 'Algo salió mal.');
+      setError((err as Error).message || t.common.genericError);
     }
   }
 
@@ -147,19 +149,19 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
   if (mic.listening) {
     caption = (
       <>
-        <strong>Tú:</strong> {input || 'Escuchando…'}
+        <strong>{t.interview.you}:</strong> {input || t.interview.listening}
       </>
     );
   } else if (pendingDraft) {
     caption = (
       <>
-        <strong>Tú:</strong> {input}
+        <strong>{t.interview.you}:</strong> {input}
         <span className="caption-actions">
           <button className="link" onClick={send}>
-            Enviar respuesta
+            {t.interview.sendAnswer}
           </button>
           <button className="link" onClick={toggleMic}>
-            Seguir hablando
+            {t.interview.keepTalking}
           </button>
         </span>
       </>
@@ -167,10 +169,10 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
   } else if (thinking) {
     caption =
       download !== null ? (
-        `Descargando el modelo local… ${Math.round(download * 100)}%`
+        t.interview.downloading(Math.round(download * 100))
       ) : (
         <span className="caption-muted">
-          {interviewerName} está pensando <span className="dots" />
+          {t.interview.thinking(interviewerName)} <span className="dots" />
         </span>
       );
   } else if (lastAssistant) {
@@ -184,11 +186,9 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
   return (
     <main className="call">
       <div className="call-body">
-        <section className="stage" aria-label="Videollamada">
+        <section className="stage" aria-label={t.interview.call}>
           <div className="stage-top">
-            <span>
-              {focusTitle(profile.focus)} en {profile.company}
-            </span>
+            <span>{t.interview.topic(capitalize(t.options.focusLabels[profile.focus]), profile.company)}</span>
             <span className="call-timer">{elapsed}</span>
           </div>
 
@@ -212,7 +212,7 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
             <Silhouette className="silhouette" />
             <span className="tile-label">
               {mic.listening ? <MicIcon /> : <MicOffIcon />}
-              Tú
+              {t.interview.you}
             </span>
           </div>
 
@@ -221,7 +221,7 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
               {error}{' '}
               {lastIsUser && !thinking && (
                 <button className="link" onClick={() => advance(messages)}>
-                  Reintentar
+                  {t.common.retry}
                 </button>
               )}
             </div>
@@ -236,17 +236,21 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
         </section>
 
         {transcriptOpen && (
-          <aside className="transcript-panel" aria-label="Transcripción">
+          <aside className="transcript-panel" aria-label={t.interview.transcript}>
             <header>
-              <span>Transcripción</span>
-              <button className="icon-btn" onClick={() => setTranscriptOpen(false)} aria-label="Cerrar transcripción">
+              <span>{t.interview.transcript}</span>
+              <button
+                className="icon-btn"
+                onClick={() => setTranscriptOpen(false)}
+                aria-label={t.interview.closeTranscript}
+              >
                 ✕
               </button>
             </header>
             <div className="transcript-lines">
               {visible.map((m, i) => (
                 <p key={i} className={`tline ${m.role}`}>
-                  <strong>{m.role === 'assistant' ? interviewerName : 'Tú'}</strong>
+                  <strong>{m.role === 'assistant' ? interviewerName : t.interview.you}</strong>
                   {m.content}
                 </p>
               ))}
@@ -271,11 +275,11 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
                 send();
               }
             }}
-            placeholder="Escribe tu respuesta (Enter para enviar)"
+            placeholder={t.interview.typePlaceholder}
             rows={1}
           />
           <button className="primary" onClick={send} disabled={!input.trim() || thinking}>
-            Enviar
+            {t.interview.send}
           </button>
         </div>
       )}
@@ -287,17 +291,23 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
             onClick={toggleMic}
             disabled={!mic.supported || thinking}
             aria-pressed={mic.listening}
-            title={!mic.supported ? 'Tu navegador no permite dictar' : mic.listening ? 'Terminar y enviar tu respuesta' : 'Responder hablando'}
+            title={
+              !mic.supported
+                ? t.interview.micUnsupported
+                : mic.listening
+                  ? t.interview.finishAndSend
+                  : t.interview.answerBySpeaking
+            }
           >
             {mic.listening ? <MicIcon /> : <MicOffIcon />}
-            <span>{mic.listening ? 'Terminar respuesta' : 'Responder'}</span>
+            <span>{mic.listening ? t.interview.finishAnswer : t.interview.answer}</span>
           </button>
           <button
             className={`control ${keyboard ? 'active' : ''}`}
             onClick={() => setKeyboard(!keyboard)}
             aria-pressed={keyboard}
-            title="Escribir respuesta"
-            aria-label="Escribir respuesta"
+            title={t.interview.typeAnswer}
+            aria-label={t.interview.typeAnswer}
           >
             <KeyboardIcon />
           </button>
@@ -305,8 +315,8 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
             className={`control ${captions ? 'active' : ''}`}
             onClick={() => setCaptions(!captions)}
             aria-pressed={captions}
-            title="Subtítulos"
-            aria-label="Subtítulos"
+            title={t.interview.captions}
+            aria-label={t.interview.captions}
           >
             <CaptionsIcon />
           </button>
@@ -314,8 +324,8 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
             className={`control ${transcriptOpen ? 'active' : ''}`}
             onClick={() => setTranscriptOpen(!transcriptOpen)}
             aria-pressed={transcriptOpen}
-            title="Transcripción"
-            aria-label="Transcripción"
+            title={t.interview.transcript}
+            aria-label={t.interview.transcript}
           >
             <TranscriptIcon />
           </button>
@@ -323,22 +333,18 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
             className={`control ${muted ? 'off' : ''}`}
             onClick={toggleMute}
             aria-pressed={muted}
-            title={muted ? 'Activar la voz del entrevistador' : 'Silenciar al entrevistador'}
-            aria-label={muted ? 'Activar la voz del entrevistador' : 'Silenciar al entrevistador'}
+            title={muted ? t.interview.unmute : t.interview.mute}
+            aria-label={muted ? t.interview.unmute : t.interview.mute}
           >
             {muted ? <MutedIcon /> : <VolumeIcon />}
           </button>
         </div>
-        <button className="control hangup" onClick={end} title="Terminar la entrevista">
+        <button className="control hangup" onClick={end} title={t.interview.endTitle}>
           <HangUpIcon />
-          <span>Terminar</span>
+          <span>{t.interview.end}</span>
         </button>
       </footer>
-      <p className="hint call-hint">
-        {mic.supported
-          ? 'Pulsa Responder, habla y pulsa Terminar respuesta cuando acabes. Estructura tu respuesta: situación, tarea, acción y resultado.'
-          : 'Tu navegador no permite dictar: responde escribiendo. Estructura tu respuesta: situación, tarea, acción y resultado.'}
-      </p>
+      <p className="hint call-hint">{mic.supported ? t.interview.hintMic : t.interview.hintNoMic}</p>
     </main>
   );
 }

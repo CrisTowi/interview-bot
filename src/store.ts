@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { CloudProvider, NostrIdentity, Profile, SessionSummary, Settings, SyncPayload, TtsProvider } from './types';
+import type { CloudProvider, Lang, NostrIdentity, Profile, SessionSummary, Settings, SyncPayload, TtsProvider } from './types';
 
 export const DEFAULT_MODELS: Record<CloudProvider, string> = {
   openai: 'gpt-5-mini',
@@ -16,6 +16,10 @@ export const DEFAULT_VOICES: Record<TtsProvider, string> = {
 
 const MAX_HISTORY = 50;
 
+/** First visit: follow the browser's language (Spanish if it's any Spanish variant, otherwise English). */
+const initialLang: Lang =
+  typeof navigator !== 'undefined' && navigator.language?.toLowerCase().startsWith('es') ? 'es' : 'en';
+
 const defaultProfile: Profile = {
   role: 'Software Engineer',
   seniority: 'Senior',
@@ -24,10 +28,11 @@ const defaultProfile: Profile = {
   background: '',
   cvSummary: '',
   salary: '',
-  lang: 'es',
+  lang: initialLang,
 };
 
 const defaultSettings: Settings = {
+  uiLang: initialLang,
   llm: 'local',
   cloud: { provider: 'openai', apiKey: '', model: DEFAULT_MODELS.openai },
   tts: 'native',
@@ -123,7 +128,8 @@ export const useApp = create<AppState>()(
           ...current,
           ...p,
           profile: { ...current.profile, ...p.profile },
-          settings: { ...current.settings, ...p.settings },
+          // Saved before the app had its own language: keep the language they were already using.
+          settings: { ...current.settings, uiLang: p.profile?.lang ?? current.settings.uiLang, ...p.settings },
           nostr: { ...current.nostr, ...p.nostr },
         };
       },

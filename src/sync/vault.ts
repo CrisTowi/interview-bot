@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import type { Vault } from '../types';
 
 /**
@@ -38,22 +39,33 @@ export async function sealVault(keys: VaultKeys, passphrase: string, salt?: stri
   const vaultSalt = salt ?? toBase64(crypto.getRandomValues(new Uint8Array(16)));
   const key = await deriveKey(passphrase, vaultSalt);
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const data = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(JSON.stringify(keys)));
+  const data = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    new TextEncoder().encode(JSON.stringify(keys)),
+  );
   return { salt: vaultSalt, iv: toBase64(iv), data: toBase64(new Uint8Array(data)) };
 }
 
 export async function openVault(vault: Vault, passphrase: string): Promise<VaultKeys> {
   const key = await deriveKey(passphrase, vault.salt);
   try {
-    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromBase64(vault.iv) }, key, fromBase64(vault.data));
+    const plain = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: fromBase64(vault.iv) },
+      key,
+      fromBase64(vault.data),
+    );
     return JSON.parse(new TextDecoder().decode(plain));
   } catch {
-    throw new Error('Esa contraseña no abre tus keys. Revisa mayúsculas y espacios.');
+    throw new Error(t().sync.errorWrongPassword);
   }
 }
 
 /** Identifies a set of keys without storing them, to detect local changes. */
 export async function fingerprint(keys: VaultKeys): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify([keys.cloud, keys.tts])));
+  const digest = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(JSON.stringify([keys.cloud, keys.tts])),
+  );
   return toBase64(new Uint8Array(digest));
 }

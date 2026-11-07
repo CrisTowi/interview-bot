@@ -1,3 +1,5 @@
+import { t } from '../i18n';
+
 /**
  * OpenRouter's public model catalog. It needs no API key and allows CORS, so the browser fetches it directly.
  */
@@ -20,7 +22,7 @@ let catalog: Promise<ModelOption[]> | null = null;
 export function fetchOpenRouterModels(): Promise<ModelOption[]> {
   catalog ??= fetch('https://openrouter.ai/api/v1/models')
     .then((res) => {
-      if (!res.ok) throw new Error(`OpenRouter respondió ${res.status}`);
+      if (!res.ok) throw new Error(`OpenRouter: HTTP ${res.status}`);
       return res.json();
     })
     .then(({ data }: { data: any[] }) =>
@@ -46,13 +48,13 @@ function usd(amount: number): string {
 }
 
 export function priceLabel(m: ModelOption): string {
-  if (m.free) return 'Gratis';
-  if (m.inputPerM < 0 || m.outputPerM < 0) return 'Precio variable';
-  return `${usd(m.inputPerM)} / ${usd(m.outputPerM)} por 1M tokens`;
+  if (m.free) return t().models.free;
+  if (m.inputPerM < 0 || m.outputPerM < 0) return t().models.priceVariable;
+  return t().models.perMillion(usd(m.inputPerM), usd(m.outputPerM));
 }
 
 export function interviewCostLabel(m: ModelOption): string | null {
   if (m.free || m.inputPerM < 0 || m.outputPerM < 0) return null;
   const cost = (m.inputPerM * INTERVIEW_INPUT_TOKENS + m.outputPerM * INTERVIEW_OUTPUT_TOKENS) / 1e6;
-  return `≈ ${usd(cost)} por entrevista`;
+  return t().models.perInterview(usd(cost));
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { LangSwitch } from './components/LangSwitch';
 import { ProfileMenu } from './components/ProfileCard';
 import { SettingsMenu } from './components/SettingsMenu';
 import { Home } from './screens/Home';
@@ -35,6 +36,7 @@ export function App() {
             <span className="brand-name">{APP_NAME}</span>
           </button>
           <div className="topbar-actions">
+            <LangSwitch />
             <ProfileMenu
               open={menu === 'profile'}
               onToggle={toggle('profile')}

@@ -21,6 +21,8 @@ export type CloudProvider = 'openai' | 'anthropic' | 'gemini' | 'openrouter';
 export type TtsProvider = 'openai' | 'elevenlabs';
 
 export interface Settings {
+  /** Language of the app's interface (the interview language is profile.lang). */
+  uiLang: Lang;
   llm: 'local' | 'cloud';
   cloud: { provider: CloudProvider; apiKey: string; model: string };
   tts: 'native' | 'premium' | 'off';

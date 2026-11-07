@@ -2,21 +2,6 @@ import type { ChatMessage, Company, Dimension, Evaluation, Focus, Lang, Profile,
 
 const LANGUAGE: Record<Lang, string> = { es: 'Spanish', en: 'English' };
 
-/** Lowercase so they read naturally inside the home sentence ("…sobre liderazgo"). */
-export const FOCUS_LABELS: Record<Focus, string> = {
-  mixed: 'temas variados',
-  leadership: 'liderazgo',
-  conflict: 'conflictos',
-  failure: 'errores y aprendizaje',
-  impact: 'impacto y resultados',
-  ambiguity: 'ambigüedad',
-};
-
-export function focusTitle(focus: Focus | undefined): string {
-  const label = FOCUS_LABELS[focus ?? 'mixed'] ?? FOCUS_LABELS.mixed;
-  return label[0].toUpperCase() + label.slice(1);
-}
-
 const FOCUS_GUIDE: Record<Focus, string> = {
   mixed: 'Cover a mix of competencies: leadership, conflict, failure, impact and ambiguity.',
   leadership: 'Focus on leadership and influence: leading without authority, mentoring, driving decisions, raising the bar.',
