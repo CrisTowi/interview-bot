@@ -4,13 +4,14 @@ import { capitalize, useT, type Dict } from '../i18n';
 import { buildSummaryPrompt, parseEvaluation, transcriptText } from '../lib/prompts';
 import { APP_NAME, useDocumentTitle } from '../lib/title';
 import { useApp } from '../store';
-import type { ChatMessage, SessionSummary } from '../types';
+import type { SessionSummary } from '../types';
+import type { InterviewResult } from './Interview';
 
 interface Props {
   /** Show a saved summary... */
   existing?: SessionSummary;
   /** ...or evaluate a just-finished interview. */
-  transcript?: ChatMessage[];
+  result?: InterviewResult;
   onHome: () => void;
   onRetry: () => void;
 }
@@ -46,7 +47,8 @@ function StarGuide({ t }: { t: Dict }) {
   );
 }
 
-export function Summary({ existing, transcript, onHome, onRetry }: Props) {
+export function Summary({ existing, result: interview, onHome, onRetry }: Props) {
+  const transcript = interview?.transcript;
   const { profile, settings, addSummary } = useApp();
   const t = useT();
   const [summary, setSummary] = useState<SessionSummary | undefined>(existing);
@@ -63,7 +65,7 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
     setError('');
     const agent = createAgent(settings, profile.lang);
     try {
-      const raw = await agent.reply(buildSummaryPrompt(profile), [
+      const raw = await agent.reply(buildSummaryPrompt(profile, interview?.notes), [
         { role: 'user', content: transcriptText(transcript) },
       ]);
       const result: SessionSummary = {
@@ -75,6 +77,8 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
         company: profile.company,
         focus: profile.focus,
         lang: profile.lang,
+        agentMode: interview?.agentMode,
+        notes: interview?.notes.length ? [...interview.notes] : undefined,
       };
       addSummary(result);
       setSummary(result);
@@ -256,6 +260,29 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
           </section>
         )}
       </div>
+
+      {summary.notes?.length ? (
+        <section>
+          <h3>{t.summary.notesTitle}</h3>
+          <ul className="notes">
+            {summary.notes.map((n, i) => (
+              <li key={i} className={n.signal}>
+                <div className="note-head">
+                  <span className="note-signal">
+                    {n.signal === 'strength' ? t.summary.noteStrength : t.summary.noteGap}
+                  </span>
+                  <span>{t.summary.dimensions[n.dimension]}</span>
+                  <span className="note-minute">{t.summary.noteMinute(n.minute)}</span>
+                </div>
+                <p lang={summary.lang}>{n.observation}</p>
+                {n.quote && <blockquote lang={summary.lang}>“{n.quote}”</blockquote>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : (
+        summary.agentMode === false && <p className="hint">{t.summary.basicNote}</p>
+      )}
 
       {summary.nextStep && (
         <section className="next-step">

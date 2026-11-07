@@ -8,6 +8,8 @@ export interface ModelOption {
   id: string;
   name: string;
   free: boolean;
+  /** Supports tool use (needed for agent mode). */
+  tools: boolean;
   /** USD per million tokens; negative means the price varies (e.g. the auto router). */
   inputPerM: number;
   outputPerM: number;
@@ -32,7 +34,14 @@ export function fetchOpenRouterModels(): Promise<ModelOption[]> {
         .map((m): ModelOption => {
           const inputPerM = Number(m.pricing?.prompt) * 1e6;
           const outputPerM = Number(m.pricing?.completion) * 1e6;
-          return { id: m.id, name: m.name ?? m.id, free: inputPerM === 0 && outputPerM === 0, inputPerM, outputPerM };
+          return {
+            id: m.id,
+            name: m.name ?? m.id,
+            free: inputPerM === 0 && outputPerM === 0,
+            tools: Array.isArray(m.supported_parameters) && m.supported_parameters.includes('tools'),
+            inputPerM,
+            outputPerM,
+          };
         })
         .sort((a, b) => a.name.localeCompare(b.name)),
     );

@@ -5,7 +5,7 @@ import type { CloudProvider, Lang, TtsProvider } from '../types';
 import { Dropdown } from './Dropdown';
 import { ModelPicker } from './ModelPicker';
 import { SyncSection, useSyncOverview } from './SyncSection';
-import { Select, useLocalAiStatus, useMediaQuery } from './ui';
+import { Select, useLocalAiStatus, useMediaQuery, useToolSupport } from './ui';
 
 type EngineChoice = 'local' | CloudProvider;
 type VoiceChoice = 'native' | 'off' | TtsProvider;
@@ -101,6 +101,7 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
     { value: 'off', label: t.settings.voiceOff },
   ];
   const localStatus = useLocalAiStatus();
+  const toolSupport = useToolSupport();
   const sync = useSyncOverview();
   const [section, setSection] = useState<Section | null>(null);
   // The side panel needs room to the left of the menu; on narrow screens sections open inline.
@@ -140,6 +141,10 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
   } else {
     engineSummary = { value: `${PROVIDER_LABELS[cloud.provider]}, ${cloud.model.split('/').pop()}`, tone: 'ok' };
   }
+  // Visible in the overview too, so nobody is surprised by an interviewer that doesn't take notes.
+  if (toolSupport === false && engineSummary.tone === 'ok') {
+    engineSummary = { ...engineSummary, value: `${engineSummary.value}, ${t.settings.basicSuffix}` };
+  }
   const langLabel = LANGS.find((l) => l.value === profile.lang)?.label ?? '';
   // Same dot convention as the other rows: green when ready, amber when a key is missing, none when off.
   const premiumName = premiumTts.provider === 'openai' ? 'OpenAI TTS' : 'ElevenLabs';
@@ -156,6 +161,9 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
     content = (
       <div className="menu-group">
         <Select value={engine} options={ENGINES} onChange={chooseEngine} label={SECTION_TITLES.engine} />
+        <p className={toolSupport ? 'agent-status on' : 'agent-status'} role="status">
+          {toolSupport === null ? t.settings.agentChecking : toolSupport ? t.settings.agentOn : t.settings.agentOff}
+        </p>
         {settings.llm === 'local' ? (
           <p className="hint">{t.settings.localStatus[localStatus]}</p>
         ) : (

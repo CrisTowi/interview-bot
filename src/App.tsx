@@ -8,12 +8,13 @@ import { Summary } from './screens/Summary';
 import { useT } from './i18n';
 import { APP_NAME } from './lib/title';
 import { startSync } from './sync/nostrSync';
-import type { ChatMessage, SessionSummary } from './types';
+import type { InterviewResult } from './screens/Interview';
+import type { SessionSummary } from './types';
 
 type Screen =
   | { name: 'home' }
   | { name: 'interview' }
-  | { name: 'summary'; transcript?: ChatMessage[]; existing?: SessionSummary };
+  | { name: 'summary'; result?: InterviewResult; existing?: SessionSummary };
 
 export function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
@@ -79,10 +80,10 @@ export function App() {
           onViewSummary={(existing) => setScreen({ name: 'summary', existing })}
         />
       )}
-      {screen.name === 'interview' && <Interview onEnd={(transcript) => setScreen({ name: 'summary', transcript })} />}
+      {screen.name === 'interview' && <Interview onEnd={(result) => setScreen({ name: 'summary', result })} />}
       {screen.name === 'summary' && (
         <Summary
-          transcript={screen.transcript}
+          result={screen.result}
           existing={screen.existing}
           onHome={home}
           onRetry={() => setScreen({ name: 'interview' })}

@@ -3,7 +3,7 @@ import { fetchOpenRouterModels, interviewCostLabel, priceLabel, type ModelOption
 import { useT } from '../i18n';
 import { ChevronIcon } from './icons';
 
-type Filter = 'all' | 'free' | 'paid';
+type Filter = 'all' | 'free' | 'paid' | 'agent';
 
 /** Searchable list of OpenRouter models with prices; falls back to a text field if the catalog can't load. */
 export function ModelPicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
@@ -17,6 +17,7 @@ export function ModelPicker({ value, onChange }: { value: string; onChange: (id:
     { value: 'all', label: t.models.all },
     { value: 'free', label: t.models.free },
     { value: 'paid', label: t.models.paid },
+    { value: 'agent', label: t.models.agentFilter },
   ];
 
   useEffect(() => {
@@ -27,7 +28,7 @@ export function ModelPicker({ value, onChange }: { value: string; onChange: (id:
     const q = query.trim().toLowerCase();
     return (models ?? []).filter(
       (m) =>
-        (filter === 'all' || (filter === 'free') === m.free) &&
+        (filter === 'all' || (filter === 'agent' ? m.tools : (filter === 'free') === m.free)) &&
         (!q || m.name.toLowerCase().includes(q) || m.id.toLowerCase().includes(q)),
     );
   }, [models, query, filter]);
@@ -98,7 +99,14 @@ export function ModelPicker({ value, onChange }: { value: string; onChange: (id:
                   }}
                 >
                   <span className="model-name">{m.name}</span>
-                  <span className={m.free ? 'model-price free' : 'model-price'}>{priceLabel(m)}</span>
+                  <span className={m.free ? 'model-price free' : 'model-price'}>
+                    {priceLabel(m)}
+                    {m.tools && (
+                      <span className="agent-tag" title={t.models.agentTagTitle}>
+                        {t.models.agentTag}
+                      </span>
+                    )}
+                  </span>
                 </button>
               </li>
             ))}

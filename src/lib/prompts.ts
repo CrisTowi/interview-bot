@@ -1,4 +1,4 @@
-import type { ChatMessage, Company, Dimension, Evaluation, Focus, Lang, Profile, SessionSummary } from '../types';
+import type { ChatMessage, Company, Dimension, Evaluation, Focus, InterviewNote, Lang, Profile, SessionSummary } from '../types';
 
 const LANGUAGE: Record<Lang, string> = { es: 'Spanish', en: 'English' };
 
@@ -30,6 +30,8 @@ export function buildSystemPrompt(
   history: SessionSummary[],
   interviewerName: string,
   gender: 'female' | 'male' | null,
+  /** Agent mode: the model can call take_note, review_notes and end_interview. */
+  withTools = false,
 ): string {
   const lines: (string | null)[] = [
     `You are ${interviewerName}, a senior interviewer at ${p.company}, running a realistic behavioral interview for a ${p.seniority} ${p.role} position over a video call.`,
@@ -59,6 +61,16 @@ export function buildSystemPrompt(
     '- Cover about 4-5 main questions with their follow-ups, then wrap up and invite the candidate to ask you a question.',
   ];
 
+  if (withTools) {
+    lines.push(
+      '',
+      'You have tools. Use them silently and never mention them, your notes or the time to the candidate:',
+      `- take_note: after each substantive answer, record one or two pieces of evidence (strengths and gaps) against an evaluation dimension, quoting the candidate's own words. Write observations in ${LANGUAGE[p.lang]}.`,
+      '- review_notes: before moving on to a new main question, review your notes to see which dimensions still lack evidence and how much time has passed, and let that pick your next question.',
+      "- end_interview: once you've covered enough (about 30 minutes or 4-5 main questions), invited the candidate's questions and answered them, say a brief goodbye and call end_interview in that same turn.",
+    );
+  }
+
   const past = history.slice(0, 3);
   if (past.length) {
     lines.push('', 'Previous sessions with this candidate (most recent first). Probe the areas they need to improve:');
@@ -79,9 +91,10 @@ export function kickoffMessage(lang: Lang): ChatMessage {
 
 export const DIMENSIONS: Dimension[] = ['structure', 'specificity', 'ownership', 'impact', 'scope', 'communication'];
 
-export function buildSummaryPrompt(p: Profile): string {
+export function buildSummaryPrompt(p: Profile, notes: InterviewNote[] = []): string {
+  const noteLines = notes.map((n) => `- min ${n.minute} [${n.dimension}, ${n.signal}] ${n.observation}${n.quote ? ` ("${n.quote}")` : ''}`);
   return `You are a member of a ${p.company} hiring committee. Evaluate the candidate in the following behavioral interview for a ${p.seniority} ${p.role} position.
-${p.cvSummary?.trim() ? `Candidate's background (from their CV), to judge whether their stories match their level:\n${p.cvSummary.trim()}\n` : ''}Be honest and specific: quote or paraphrase what the candidate actually said. Address the candidate directly as "you".
+${notes.length ? `The interviewer took these notes during the call; use them as evidence alongside the transcript:\n${noteLines.join('\n')}\n` : ''}${p.cvSummary?.trim() ? `Candidate's background (from their CV), to judge whether their stories match their level:\n${p.cvSummary.trim()}\n` : ''}Be honest and specific: quote or paraphrase what the candidate actually said. Address the candidate directly as "you".
 Reply ONLY with a JSON object, no other text. Write all text fields in ${LANGUAGE[p.lang]}. Shape:
 {
   "score": <integer 1-10>,

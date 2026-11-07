@@ -10,15 +10,16 @@ import {
   TranscriptIcon,
   VolumeIcon,
 } from '../components/icons';
-import { createAgent, type InterviewAgent } from '../engines/agent';
+import { createAgent, supportsTools, type AgentTool, type InterviewAgent } from '../engines/agent';
 import { castInterviewer } from '../engines/casting';
 import { useSpeechInput } from '../engines/speechInput';
 import { createVoice, type VoiceEngine } from '../engines/voice';
 import { capitalize, useT } from '../i18n';
+import { createInterviewerTools } from '../lib/interviewerTools';
 import { buildSystemPrompt, kickoffMessage } from '../lib/prompts';
 import { APP_NAME, useDocumentTitle } from '../lib/title';
 import { useApp } from '../store';
-import type { ChatMessage } from '../types';
+import type { ChatMessage, InterviewNote } from '../types';
 
 function useElapsed(): string {
   const [seconds, setSeconds] = useState(0);
@@ -30,12 +31,34 @@ function useElapsed(): string {
 }
 
 /** A simulated video call: the interviewer's tile, your tile, live captions and call controls. */
-export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => void }) {
+/** How the interview ended: transcript, the interviewer's notes, and whether it ran in agent mode. */
+export interface InterviewResult {
+  transcript: ChatMessage[];
+  notes: InterviewNote[];
+  agentMode: boolean;
+}
+
+export function Interview({ onEnd }: { onEnd: (result: InterviewResult) => void }) {
   const { profile, settings, history } = useApp();
   // Chosen once per session, together with a voice of the same gender (see engines/casting.ts).
   const [interviewerName, setInterviewerName] = useState('');
   // Frozen for the whole session: built once from profile + past summaries + the interviewer.
   const system = useRef('');
+  const gender = useRef<'female' | 'male' | null>(null);
+  /** Agent mode = the model can use the interviewer's tools; basic mode = plain conversation. */
+  const [agentMode, setAgentModeState] = useState<boolean | null>(null);
+  // advance() and end() run from async callbacks that may predate the latest render, so they read refs.
+  const agentModeRef = useRef(false);
+  const nameRef = useRef('');
+  const setAgentMode = (value: boolean) => {
+    agentModeRef.current = value;
+    setAgentModeState(value);
+  };
+  const tools = useRef<AgentTool[]>([]);
+  const notes = useRef<InterviewNote[]>([]);
+  /** The interviewer hung up (end_interview); we leave once the goodbye has been spoken. */
+  const hangUpRequested = useRef(false);
+  const messagesRef = useRef<ChatMessage[]>([]);
 
   const agent = useRef<InterviewAgent | null>(null);
   const voice = useRef<VoiceEngine | null>(null);
@@ -63,11 +86,20 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
   useEffect(() => {
     mounted.current = true;
     agent.current = createAgent(settings, profile.lang, (ratio) => setDownload(ratio < 1 ? ratio : null));
+    tools.current = createInterviewerTools({
+      lang: profile.lang,
+      notes: notes.current,
+      startedAt: Date.now(),
+      onEnd: () => (hangUpRequested.current = true),
+    });
     setThinking(true);
-    castInterviewer(settings, profile.lang).then((cast) => {
+    Promise.all([castInterviewer(settings, profile.lang), supportsTools(settings)]).then(([cast, canUseTools]) => {
       if (!mounted.current) return;
       setInterviewerName(cast.name);
-      system.current = buildSystemPrompt(profile, history, cast.name, cast.gender);
+      nameRef.current = cast.name;
+      setAgentMode(canUseTools);
+      gender.current = cast.gender;
+      system.current = buildSystemPrompt(profile, history, cast.name, cast.gender, canUseTools);
       voice.current = createVoice(settings, profile.lang, cast);
       advance([kickoffMessage(profile.lang)]);
     });
@@ -101,16 +133,30 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
     }
   }
 
-  async function advance(next: ChatMessage[]) {
+  function showMessages(next: ChatMessage[]) {
+    messagesRef.current = next;
     setMessages(next);
+  }
+
+  async function advance(next: ChatMessage[]) {
+    showMessages(next);
     setThinking(true);
     setError('');
     try {
-      const text = (await agent.current!.reply(system.current, next)).trim();
+      const useTools = !agent.current!.toolsUnsupported && system.current.includes('end_interview');
+      const text = (await agent.current!.reply(system.current, next, useTools ? tools.current : undefined)).trim();
       if (!mounted.current) return;
-      setMessages([...next, { role: 'assistant', content: text }]);
+      // The model turned out not to support tools: switch to basic mode for the rest of the call.
+      if (useTools && agent.current!.toolsUnsupported) {
+        setAgentMode(false);
+        system.current = buildSystemPrompt(profile, history, nameRef.current, gender.current, false);
+      }
+      const shown = text ? [...next, { role: 'assistant' as const, content: text }] : next;
+      showMessages(shown);
       setThinking(false);
-      speak(text);
+      await speak(text);
+      // The interviewer hung up: let the goodbye sink in for a moment, then leave the call.
+      if (hangUpRequested.current && mounted.current) setTimeout(() => mounted.current && end(), 1200);
     } catch (err) {
       if (!mounted.current) return;
       setThinking(false);
@@ -144,7 +190,7 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
     sendWhenMicStops.current = false;
     mic.stop();
     voice.current?.stop();
-    onEnd(messages);
+    onEnd({ transcript: messagesRef.current, notes: notes.current, agentMode: agentModeRef.current });
   }
 
   const visible = messages.filter((m) => !m.hidden);
@@ -198,7 +244,20 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
         <section className="stage" aria-label={t.interview.call}>
           <div className="stage-top">
             <span>{t.interview.topic(capitalize(t.options.focusLabels[profile.focus]), profile.company)}</span>
-            <span className="call-timer">{elapsed}</span>
+            <span className="stage-meta">
+              {agentMode !== null && (
+                <span
+                  className={agentMode ? 'mode-badge agent' : 'mode-badge'}
+                  title={agentMode ? t.interview.agentModeTitle : t.interview.basicModeTitle}
+                >
+                  {agentMode ? t.interview.agentMode : t.interview.basicMode}
+                  <span className="sr-only">
+                    : {agentMode ? t.interview.agentModeTitle : t.interview.basicModeTitle}
+                  </span>
+                </span>
+              )}
+              <span className="call-timer">{elapsed}</span>
+            </span>
           </div>
 
           <div className={`tile-main ${speaking ? 'speaking' : ''}`}>

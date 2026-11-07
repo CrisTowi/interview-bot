@@ -13,6 +13,7 @@ Simulador de entrevistas **behavioral** estilo Big Tech con IA (STAR, Leadership
   - Capa 2: OpenAI TTS / ElevenLabs a través de `api/tts.ts`.
 - **Dictado** opcional con `SpeechRecognition`. Ojo: en Chrome, ese audio lo procesan los servidores de Google.
 - **Bilingüe (español / inglés):** el idioma de la app (selector ES | EN, `src/i18n.ts`) es independiente del idioma de la entrevista.
+- **Modo agente** (`src/lib/interviewerTools.ts`): con modelos que soportan herramientas, el entrevistador toma notas con citas (`take_note`), revisa qué criterios le faltan y cuánto tiempo lleva (`review_notes`) y cuelga cuando termina (`end_interview`). El ciclo corre en el navegador; el proxy traduce el formato de herramientas de cada proveedor. Con modelos sin herramientas (p. ej. Chrome AI local) funciona en **modo básico**, y la app lo indica.
 - **Contexto entre sesiones**: al terminar se genera una evaluación (score, fortalezas, puntos a mejorar), y las próximas entrevistas reciben los últimos 3 resúmenes en el prompt.
 
 Los archivos de `api/` son Vercel Functions sin estado: no tienen `console.*` ni almacenamiento, y la key solo vive en memoria durante la petición. Están en un único archivo cada una a propósito, sin imports locales.

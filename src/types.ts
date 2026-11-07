@@ -56,6 +56,10 @@ export interface SessionSummary extends Evaluation {
   id: string;
   /** Language the evaluation text was written in (the interview language), for screen readers. */
   lang?: Lang;
+  /** Agent mode: notes taken during the call. Undefined for basic mode and older sessions. */
+  notes?: InterviewNote[];
+  /** Whether the interview ran in agent mode (the model could use tools). */
+  agentMode?: boolean;
   date: string;
   role: string;
   seniority: Seniority;
@@ -91,4 +95,15 @@ export interface SyncPayload {
   history: SessionSummary[];
   historyClearedAt: number;
   vault?: Vault;
+}
+
+/** Evidence the interviewer wrote down during the call (agent mode). */
+export interface InterviewNote {
+  dimension: Dimension;
+  signal: 'strength' | 'gap';
+  observation: string;
+  /** The candidate's own words, when there's a quote. */
+  quote?: string;
+  /** Minutes into the interview. */
+  minute: number;
 }

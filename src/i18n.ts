@@ -112,6 +112,11 @@ const es = {
     openaiVoicePlaceholder: 'Automática según el entrevistador (o: nova, onyx…)',
     voiceId: 'Automática según el entrevistador (o un Voice ID)',
     interviewLang: 'Idioma de la entrevista',
+    agentChecking: 'Comprobando si el modelo puede usar herramientas…',
+    agentOn: 'Modo agente: el entrevistador toma notas, revisa su progreso y decide cuándo terminar la llamada.',
+    agentOff:
+      'Modo básico: este modelo no usa herramientas. La entrevista funciona igual, pero el entrevistador no toma notas y tú decides cuándo terminar.',
+    basicSuffix: 'modo básico',
   },
   sync: {
     summaryOff: 'Guardado en este navegador; no necesitas configurar nada',
@@ -234,10 +239,17 @@ const es = {
     priceVariable: 'Precio variable',
     perMillion: (input: string, output: string) => `${input} / ${output} por 1M tokens`,
     perInterview: (cost: string) => `≈ ${cost} por entrevista`,
+    agentTag: 'Agente',
+    agentTagTitle: 'Usa herramientas: modo agente',
+    agentFilter: 'Agente',
   },
   interview: {
     call: 'Videollamada',
     connecting: 'Conectando…',
+    agentMode: 'Modo agente',
+    agentModeTitle: 'El entrevistador toma notas, revisa su progreso y decide cuándo terminar la llamada',
+    basicMode: 'Modo básico',
+    basicModeTitle: 'Este modelo no usa herramientas: el entrevistador no toma notas y tú decides cuándo terminar',
     topic: (focus: string, company: string) => `${focus} en ${company}`,
     thinking: (name: string) => `${name} está pensando`,
     downloading: (percent: number) => `Descargando el modelo local… ${percent}%`,
@@ -322,6 +334,12 @@ const es = {
     nextTask: 'Tu tarea para la próxima',
     nextInterviewHint: 'Tu próxima entrevista insistirá en los puntos que te frenaron.',
     practiceAgain: 'Practicar otra vez',
+    notesTitle: 'Notas del entrevistador',
+    noteStrength: 'A favor',
+    noteGap: 'A mejorar',
+    noteMinute: (minute: number) => `min ${minute}`,
+    basicNote:
+      'Esta entrevista fue en modo básico: el modelo elegido no usa herramientas, así que el entrevistador no tomó notas durante la llamada.',
   },
 };
 
@@ -431,6 +449,11 @@ const en: Dict = {
     openaiVoicePlaceholder: "Automatic, matching the interviewer (or: nova, onyx…)",
     voiceId: 'Automatic, matching the interviewer (or a Voice ID)',
     interviewLang: 'Interview language',
+    agentChecking: 'Checking whether the model can use tools…',
+    agentOn: 'Agent mode: the interviewer takes notes, reviews their progress and decides when to end the call.',
+    agentOff:
+      "Basic mode: this model doesn't use tools. The interview works the same, but the interviewer takes no notes and you decide when to end.",
+    basicSuffix: 'basic mode',
   },
   sync: {
     summaryOff: 'Saved in this browser; nothing to set up',
@@ -552,10 +575,17 @@ const en: Dict = {
     priceVariable: 'Variable price',
     perMillion: (input, output) => `${input} / ${output} per 1M tokens`,
     perInterview: (cost) => `≈ ${cost} per interview`,
+    agentTag: 'Agent',
+    agentTagTitle: 'Uses tools: agent mode',
+    agentFilter: 'Agent',
   },
   interview: {
     call: 'Video call',
     connecting: 'Connecting…',
+    agentMode: 'Agent mode',
+    agentModeTitle: 'The interviewer takes notes, reviews their progress and decides when to end the call',
+    basicMode: 'Basic mode',
+    basicModeTitle: "This model doesn't use tools: the interviewer takes no notes and you decide when to end",
     topic: (focus, company) => `${focus} at ${company}`,
     thinking: (name) => `${name} is thinking`,
     downloading: (percent) => `Downloading the local model… ${percent}%`,
@@ -629,6 +659,12 @@ const en: Dict = {
     nextTask: 'Your homework for next time',
     nextInterviewHint: 'Your next interview will press on what held you back.',
     practiceAgain: 'Practice again',
+    notesTitle: "Interviewer's notes",
+    noteStrength: 'Strength',
+    noteGap: 'To improve',
+    noteMinute: (minute) => `min ${minute}`,
+    basicNote:
+      "This interview ran in basic mode: the chosen model doesn't use tools, so the interviewer took no notes during the call.",
   },
 };
 

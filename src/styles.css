@@ -1824,3 +1824,84 @@ main:focus,
   padding-top: 12px;
   border-top: 1px solid var(--line);
 }
+
+/* ---------- Agent mode ---------- */
+
+.stage-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.mode-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  font-size: 0.75rem;
+  color: var(--call-muted);
+}
+.mode-badge.agent {
+  border-color: color-mix(in srgb, var(--call-live) 60%, transparent);
+  color: var(--call-live);
+}
+.agent-status {
+  margin: 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--line);
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.agent-status.on {
+  border-left-color: var(--accent);
+}
+.agent-tag {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.notes {
+  list-style: none !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+}
+.notes li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.notes li + li {
+  margin-top: 0;
+}
+.note-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.note-signal {
+  color: var(--danger);
+}
+.notes li.strength .note-signal {
+  color: var(--accent);
+}
+.note-minute {
+  margin-left: auto;
+  font-weight: 400;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.notes p {
+  margin: 4px 0 0;
+  font-size: 0.92rem;
+}
+.notes blockquote {
+  margin: 6px 0 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--line);
+  font: italic 400 0.95rem/1.5 var(--serif);
+  color: var(--muted);
+}

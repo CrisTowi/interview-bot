@@ -42,6 +42,9 @@ export async function checkLocalAi(): Promise<LocalAiStatus> {
 }
 
 export class LocalAgent implements InterviewAgent {
+  /** Chrome's local model doesn't do tool use; the interview runs in basic mode. */
+  readonly toolsUnsupported = true;
+
   private session?: LMSession;
   private sessionSystem = '';
   /** How many messages the current session already holds in its context. */

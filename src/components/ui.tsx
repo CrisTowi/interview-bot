@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { supportsTools } from '../engines/agent';
 import { checkLocalAi, type LocalAiStatus } from '../engines/localAgent';
 import { useApp } from '../store';
 
@@ -60,4 +61,19 @@ export function useMediaQuery(query: string): boolean {
     return () => list.removeEventListener('change', onChange);
   }, [query]);
   return matches;
+}
+
+/** Agent mode availability for the selected engine/model: null while checking. */
+export function useToolSupport(): boolean | null {
+  const settings = useApp((s) => s.settings);
+  const [supported, setSupported] = useState<boolean | null>(null);
+  useEffect(() => {
+    let current = true;
+    setSupported(null);
+    supportsTools(settings).then((value) => current && setSupported(value));
+    return () => {
+      current = false;
+    };
+  }, [settings.llm, settings.cloud.provider, settings.cloud.model]);
+  return supported;
 }
