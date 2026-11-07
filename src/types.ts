@@ -54,6 +54,8 @@ export interface Evaluation {
 
 export interface SessionSummary extends Evaluation {
   id: string;
+  /** Language the evaluation text was written in (the interview language), for screen readers. */
+  lang?: Lang;
   date: string;
   role: string;
   seniority: Seniority;

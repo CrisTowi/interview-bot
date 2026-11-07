@@ -21,13 +21,21 @@ export function Dropdown({
   aside?: ReactNode;
 }) {
   const container = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    // Move focus into the panel so keyboard and screen-reader users start inside it.
+    panel.current?.focus();
     const onPointer = (e: PointerEvent) => {
       if (!container.current?.contains(e.target as Node)) onClose();
     };
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      onClose();
+      trigger.current?.focus();
+    };
     document.addEventListener('pointerdown', onPointer);
     document.addEventListener('keydown', onKey);
     return () => {
@@ -38,11 +46,11 @@ export function Dropdown({
 
   return (
     <div className="menu-anchor" ref={container}>
-      <button className="ghost" aria-expanded={open} aria-haspopup="dialog" onClick={onToggle}>
+      <button ref={trigger} className="ghost" aria-expanded={open} aria-haspopup="dialog" onClick={onToggle}>
         {label} <ChevronIcon />
       </button>
       {open && (
-        <div className="menu" role="dialog" aria-label={title}>
+        <div ref={panel} className="menu" role="dialog" aria-label={title} tabIndex={-1}>
           {children}
         </div>
       )}

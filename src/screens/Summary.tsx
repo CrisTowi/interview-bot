@@ -63,7 +63,9 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
     setError('');
     const agent = createAgent(settings, profile.lang);
     try {
-      const raw = await agent.reply(buildSummaryPrompt(profile), [{ role: 'user', content: transcriptText(transcript) }]);
+      const raw = await agent.reply(buildSummaryPrompt(profile), [
+        { role: 'user', content: transcriptText(transcript) },
+      ]);
       const result: SessionSummary = {
         ...parseEvaluation(raw),
         id: crypto.randomUUID(),
@@ -72,6 +74,7 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
         seniority: profile.seniority,
         company: profile.company,
         focus: profile.focus,
+        lang: profile.lang,
       };
       addSummary(result);
       setSummary(result);
@@ -91,7 +94,8 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
 
     if (!answered) {
       return (
-        <main className="summary state">
+        <main className="summary state" tabIndex={-1}>
+          <h1 className="sr-only">{t.title.result}</h1>
           <img className="state-mascot" src="/favicon.svg" alt="" width={96} height={96} />
           <h2>{t.summary.emptyTitle}</h2>
           <p className="state-text">{t.summary.emptyText}</p>
@@ -99,7 +103,7 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
           {pendingQuestion && (
             <figure className="pending-question">
               <figcaption>{t.summary.pendingQuestion}</figcaption>
-              <blockquote>{pendingQuestion}</blockquote>
+              <blockquote lang={profile.lang}>{pendingQuestion}</blockquote>
             </figure>
           )}
 
@@ -118,12 +122,21 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
     }
 
     return (
-      <main className="summary state">
-        <img className={error ? 'state-mascot' : 'state-mascot thinking'} src="/favicon.svg" alt="" width={96} height={96} />
+      <main className="summary state" tabIndex={-1}>
+        <h1 className="sr-only">{t.title.result}</h1>
+        <img
+          className={error ? 'state-mascot' : 'state-mascot thinking'}
+          src="/favicon.svg"
+          alt=""
+          width={96}
+          height={96}
+        />
         {error ? (
           <>
             <h2>{t.summary.errorTitle}</h2>
-            <p className="state-text error">{error}</p>
+            <p className="state-text error" role="alert">
+              {error}
+            </p>
             <p className="state-text">{t.summary.errorText}</p>
             <div className="summary-actions">
               <button className="primary" onClick={evaluate}>
@@ -153,7 +166,8 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
   const focusLabel = capitalize(t.options.focusLabels[summary.focus] ?? t.options.focusLabels.mixed);
 
   return (
-    <main className="summary">
+    <main className="summary" tabIndex={-1}>
+      <h1 className="sr-only">{t.title.result}</h1>
       <p className="summary-meta muted">
         {t.summary.meta(
           focusLabel,
@@ -186,8 +200,14 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
         </section>
       )}
 
-      {summary.headline && <p className="headline">{summary.headline}</p>}
-      <p className="summary-body">{summary.summary}</p>
+      {summary.headline && (
+        <p className="headline" lang={summary.lang}>
+          {summary.headline}
+        </p>
+      )}
+      <p className="summary-body" lang={summary.lang}>
+        {summary.summary}
+      </p>
 
       {summary.dimensions && (
         <section>
@@ -199,6 +219,7 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
                   <span>{t.summary.dimensions[d.key]}</span>
                   <span
                     className={`meter ${d.score <= 2 ? 'low' : d.score === 3 ? 'mid' : 'good'}`}
+                    role="img"
                     aria-label={t.summary.outOfFive(d.score)}
                   >
                     {[1, 2, 3, 4, 5].map((n) => (
@@ -206,7 +227,7 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
                     ))}
                   </span>
                 </div>
-                <p>{d.note}</p>
+                <p lang={summary.lang}>{d.note}</p>
               </li>
             ))}
           </ul>
@@ -217,7 +238,7 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
         {summary.strengths.length > 0 && (
           <section>
             <h3>{t.summary.worked}</h3>
-            <ul>
+            <ul lang={summary.lang}>
               {summary.strengths.map((s, i) => (
                 <li key={i}>{s}</li>
               ))}
@@ -227,7 +248,7 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
         {summary.improvements.length > 0 && (
           <section>
             <h3>{t.summary.heldBack}</h3>
-            <ul>
+            <ul lang={summary.lang}>
               {summary.improvements.map((s, i) => (
                 <li key={i}>{s}</li>
               ))}
@@ -239,7 +260,7 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
       {summary.nextStep && (
         <section className="next-step">
           <h3>{t.summary.nextTask}</h3>
-          <p>{summary.nextStep}</p>
+          <p lang={summary.lang}>{summary.nextStep}</p>
         </section>
       )}
 

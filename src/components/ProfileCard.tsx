@@ -104,6 +104,7 @@ export function ProfileCard({ onOpenSettings }: { onOpenSettings: () => void }) 
             <textarea
               className="briefing-editor"
               rows={9}
+              aria-label={t.profile.title}
               value={profile.cvSummary}
               onChange={(e) => setProfile({ cvSummary: e.target.value })}
             />
@@ -174,6 +175,7 @@ export function ProfileCard({ onOpenSettings }: { onOpenSettings: () => void }) 
               <textarea
                 rows={6}
                 autoFocus
+                aria-label={t.profile.pasteText}
                 value={pasted}
                 onChange={(e) => setPasted(e.target.value)}
                 placeholder={t.profile.pastePlaceholder}
@@ -202,12 +204,17 @@ export function ProfileCard({ onOpenSettings }: { onOpenSettings: () => void }) 
         </>
       )}
 
-      {error && <p className="error">{error}</p>}
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
 
       <details className="profile-notes">
         <summary>{t.profile.notes}</summary>
         <textarea
           rows={3}
+          aria-label={t.profile.notes}
           value={profile.background}
           onChange={(e) => setProfile({ background: e.target.value })}
           placeholder={t.profile.notesPlaceholder}

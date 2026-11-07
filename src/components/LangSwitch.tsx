@@ -30,19 +30,15 @@ export function LangSwitch() {
 
   // One button: clicking anywhere on the pill switches to the other language.
   return (
-    <button
-      type="button"
-      className="lang-switch"
-      title={t.langSwitch}
-      aria-label={`${t.langSwitch}: ${other.name}`}
-      lang={other.value}
-      onClick={() => choose(other.value)}
-    >
+    <button type="button" className="lang-switch" title={t.langSwitch} onClick={() => choose(other.value)}>
+      {/* Name read aloud: "App language: ES EN (Español)", so it contains what's on screen (WCAG 2.5.3). */}
+      <span className="sr-only">{t.langSwitch}: </span>
       {LANGS.map((l) => (
-        <span key={l.value} className={uiLang === l.value ? 'active' : ''} aria-hidden="true">
+        <span key={l.value} lang={l.value} className={uiLang === l.value ? 'active' : ''}>
           {l.label}
         </span>
       ))}
+      <span className="sr-only"> ({LANGS.find((l) => l.value === uiLang)!.name})</span>
     </button>
   );
 }

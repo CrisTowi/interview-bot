@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { LangSwitch } from './components/LangSwitch';
 import { ProfileMenu } from './components/ProfileCard';
 import { SettingsMenu } from './components/SettingsMenu';
@@ -20,6 +20,17 @@ export function App() {
   const closeMenu = useCallback(() => setMenu(null), []);
   const toggle = (name: 'profile' | 'settings') => () => setMenu((m) => (m === name ? null : name));
   const home = () => setScreen({ name: 'home' });
+
+  // On every screen change after the first, move focus to the new screen (its <main>), so keyboard and
+  // screen-reader users aren't left on a button that no longer exists.
+  const firstScreen = useRef(true);
+  useEffect(() => {
+    if (firstScreen.current) {
+      firstScreen.current = false;
+      return;
+    }
+    document.querySelector<HTMLElement>('main')?.focus();
+  }, [screen]);
 
   // Pull the encrypted copy from Nostr relays (if an identity is connected) and keep it in sync.
   useEffect(() => {

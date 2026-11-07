@@ -149,13 +149,13 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
   if (mic.listening) {
     caption = (
       <>
-        <strong>{t.interview.you}:</strong> {input || t.interview.listening}
+        <strong>{t.interview.you}:</strong> {input ? <span lang={profile.lang}>{input}</span> : t.interview.listening}
       </>
     );
   } else if (pendingDraft) {
     caption = (
       <>
-        <strong>{t.interview.you}:</strong> {input}
+        <strong>{t.interview.you}:</strong> <span lang={profile.lang}>{input}</span>
         <span className="caption-actions">
           <button className="link" onClick={send}>
             {t.interview.sendAnswer}
@@ -178,13 +178,14 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
   } else if (lastAssistant) {
     caption = (
       <>
-        <strong>{interviewerName}:</strong> {lastAssistant.content}
+        <strong>{interviewerName}:</strong> <span lang={profile.lang}>{lastAssistant.content}</span>
       </>
     );
   }
 
   return (
-    <main className="call">
+    <main className="call" tabIndex={-1}>
+      <h1 className="sr-only">{t.title.interview(interviewerName)}</h1>
       <div className="call-body">
         <section className="stage" aria-label={t.interview.call}>
           <div className="stage-top">
@@ -251,7 +252,7 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
               {visible.map((m, i) => (
                 <p key={i} className={`tline ${m.role}`}>
                   <strong>{m.role === 'assistant' ? interviewerName : t.interview.you}</strong>
-                  {m.content}
+                  <span lang={profile.lang}>{m.content}</span>
                 </p>
               ))}
               <div ref={transcriptEnd} />
@@ -276,6 +277,7 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
               }
             }}
             placeholder={t.interview.typePlaceholder}
+            aria-label={t.interview.typeAnswer}
             rows={1}
           />
           <button className="primary" onClick={send} disabled={!input.trim() || thinking}>

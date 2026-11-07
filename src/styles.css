@@ -5,12 +5,12 @@
   --paper: #fbfbfa;
   --surface: #ffffff;
   --ink: #1c1c1a;
-  --muted: #77756f;
+  --muted: #63615b; /* ≥4.5:1 on paper and on tinted rows (WCAG AA) */
   --line: #e6e5e1;
   --accent: #2f5d50;
   --on-accent: #ffffff;
   --danger: #b4432f;
-  --warn: #b7862a;
+  --warn: #8a6417;
 
   --serif: 'Newsreader', Georgia, serif;
   --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -43,7 +43,8 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font: 15px/1.5 var(--sans);
+  /* rem, not px: respects the font size people set in their browser. */
+  font: 0.9375rem/1.5 var(--sans);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -1710,7 +1711,7 @@ code {
 .lang-switch:hover {
   border-color: var(--muted);
 }
-.lang-switch span {
+.lang-switch span[lang] {
   height: 26px;
   display: inline-grid;
   place-items: center;
@@ -1721,7 +1722,7 @@ code {
   font-weight: 600;
   letter-spacing: 0.02em;
 }
-.lang-switch span.active {
+.lang-switch span[lang].active {
   background: var(--line);
   color: var(--ink);
 }
@@ -1733,4 +1734,26 @@ code {
   .topbar-actions .ghost svg {
     display: none;
   }
+}
+
+/* ---------- Accessibility helpers ---------- */
+
+/* Visually hidden but read by screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* Standalone text buttons still get a 24px touch target (WCAG 2.5.8). */
+button.link {
+  min-height: 24px;
+}
+/* Screens and menus receive focus programmatically so screen readers follow along; no ring needed there. */
+main:focus,
+.menu:focus,
+.flyout:focus {
+  outline: none;
 }

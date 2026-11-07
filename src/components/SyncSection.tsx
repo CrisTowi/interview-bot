@@ -139,6 +139,7 @@ export function SyncSection() {
               type="password"
               autoComplete="off"
               placeholder="nsec1…"
+              aria-label={t.sync.haveKey}
               value={nsec}
               onChange={(e) => setNsec(e.target.value)}
             />
@@ -151,7 +152,11 @@ export function SyncSection() {
             {t.sync.haveKey}
           </button>
         )}
-        {message && <p className="error">{message}</p>}
+        {message && (
+          <p className="error" role="alert">
+            {message}
+          </p>
+        )}
       </div>
     );
   }
@@ -206,6 +211,7 @@ export function SyncSection() {
               type="password"
               autoComplete="new-password"
               placeholder={t.sync.newPassword}
+              aria-label={t.sync.newPassword}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -213,6 +219,7 @@ export function SyncSection() {
               type="password"
               autoComplete="new-password"
               placeholder={t.sync.repeatPassword}
+              aria-label={t.sync.repeatPassword}
               value={confirmation}
               onChange={(e) => setConfirmation(e.target.value)}
             />
@@ -254,6 +261,7 @@ export function SyncSection() {
               type="password"
               autoComplete="current-password"
               placeholder={t.sync.currentPassword}
+              aria-label={t.sync.currentPassword}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -268,7 +276,11 @@ export function SyncSection() {
         </form>
       )}
 
-      {message && <p className="error">{message}</p>}
+      {message && (
+        <p className="error" role="alert">
+          {message}
+        </p>
+      )}
 
       <div className="account">
         <p className="hint">
