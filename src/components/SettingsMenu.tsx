@@ -140,8 +140,16 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
   } else {
     engineSummary = { value: `${PROVIDER_LABELS[cloud.provider]}, ${cloud.model.split('/').pop()}`, tone: 'ok' };
   }
-  const voiceLabel = VOICES.find((v) => v.value === voice)?.label ?? '';
   const langLabel = LANGS.find((l) => l.value === profile.lang)?.label ?? '';
+  // Same dot convention as the other rows: green when ready, amber when a key is missing, none when off.
+  const premiumName = premiumTts.provider === 'openai' ? 'OpenAI TTS' : 'ElevenLabs';
+  let voiceSummary: { value: string; tone?: string };
+  if (settings.tts === 'native')
+    voiceSummary = { value: `${t.settings.voiceSummaryBrowser}, ${langLabel}`, tone: 'ok' };
+  else if (settings.tts === 'off') voiceSummary = { value: `${t.settings.voiceOff}, ${langLabel}` };
+  else if (!premiumTts.apiKey.trim())
+    voiceSummary = { value: t.settings.voiceSummaryMissingKey(premiumName), tone: 'warn' };
+  else voiceSummary = { value: `${premiumName}, ${langLabel}`, tone: 'ok' };
 
   let content: ReactNode = null;
   if (section === 'engine') {
@@ -222,7 +230,7 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
 
   const rows: { id: Section; title: string; value: string; tone?: string }[] = [
     { id: 'engine', title: SECTION_TITLES.engine, value: engineSummary.value, tone: engineSummary.tone },
-    { id: 'voice', title: SECTION_TITLES.voice, value: `${voiceLabel}, ${langLabel}` },
+    { id: 'voice', title: SECTION_TITLES.voice, value: voiceSummary.value, tone: voiceSummary.tone },
     { id: 'sync', title: SECTION_TITLES.sync, value: sync.summary.text, tone: sync.summary.tone },
   ];
 
