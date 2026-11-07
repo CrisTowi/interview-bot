@@ -36,7 +36,6 @@ export function App() {
             <span className="brand-name">{APP_NAME}</span>
           </button>
           <div className="topbar-actions">
-            <LangSwitch />
             <ProfileMenu
               open={menu === 'profile'}
               onToggle={toggle('profile')}
@@ -44,6 +43,8 @@ export function App() {
               onOpenSettings={() => setMenu('settings')}
             />
             <SettingsMenu open={menu === 'settings'} onToggle={toggle('settings')} onClose={closeMenu} />
+            {/* Last, so changing language (and label widths) never moves it under the pointer. */}
+            <LangSwitch />
           </div>
         </header>
       )}

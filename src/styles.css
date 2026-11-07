@@ -1701,22 +1701,27 @@ code {
 .lang-switch {
   display: inline-flex;
   padding: 2px;
-  margin-right: 4px;
+  margin-left: 4px;
   border: 1px solid var(--line);
   border-radius: 999px;
-}
-.lang-switch button {
-  height: 26px;
-  padding: 0 9px;
-  border: 0;
-  border-radius: 999px;
   background: transparent;
+  cursor: pointer;
+}
+.lang-switch:hover {
+  border-color: var(--muted);
+}
+.lang-switch span {
+  height: 26px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
   color: var(--muted);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
-.lang-switch button.active {
+.lang-switch span.active {
   background: var(--line);
   color: var(--ink);
 }

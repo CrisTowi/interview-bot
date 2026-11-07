@@ -8,7 +8,7 @@ const LANGS: { value: Lang; label: string; name: string }[] = [
   { value: 'en', label: 'EN', name: 'English' },
 ];
 
-/** ES | EN toggle for the app's language. The interview language follows it unless it was set apart. */
+/** ES | EN toggle for the app's language (the whole pill is one button). The interview language follows it unless it was set apart. */
 export function LangSwitch() {
   const uiLang = useApp((s) => s.settings.uiLang);
   const interviewLang = useApp((s) => s.profile.lang);
@@ -26,21 +26,23 @@ export function LangSwitch() {
     setSettings({ uiLang: next });
   }
 
+  const other = LANGS.find((l) => l.value !== uiLang)!;
+
+  // One button: clicking anywhere on the pill switches to the other language.
   return (
-    <div className="lang-switch" role="group" aria-label={t.langSwitch}>
+    <button
+      type="button"
+      className="lang-switch"
+      title={t.langSwitch}
+      aria-label={`${t.langSwitch}: ${other.name}`}
+      lang={other.value}
+      onClick={() => choose(other.value)}
+    >
       {LANGS.map((l) => (
-        <button
-          key={l.value}
-          type="button"
-          lang={l.value}
-          aria-label={l.name}
-          aria-pressed={uiLang === l.value}
-          className={uiLang === l.value ? 'active' : ''}
-          onClick={() => choose(l.value)}
-        >
+        <span key={l.value} className={uiLang === l.value ? 'active' : ''} aria-hidden="true">
           {l.label}
-        </button>
+        </span>
       ))}
-    </div>
+    </button>
   );
 }
