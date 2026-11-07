@@ -110,7 +110,7 @@ function OverviewRow({
  * chosen section in a floating panel beside it (inline under its row on narrow screens).
  */
 export function SettingsMenu({ open, onToggle, onClose }: Props) {
-  const { settings, setSettings, profile, setProfile, history, clearHistory } = useApp();
+  const { settings, setSettings, profile, setProfile } = useApp();
   const localStatus = useLocalAiStatus();
   const sync = useSyncOverview();
   const [section, setSection] = useState<Section | null>(null);
@@ -271,15 +271,6 @@ export function SettingsMenu({ open, onToggle, onClose }: Props) {
           {!wide && section === row.id && <div className="inline-section">{content}</div>}
         </div>
       ))}
-      <div className="menu-footer">
-        <button
-          className="link"
-          disabled={!history.length}
-          onClick={() => confirm('¿Borrar todo el historial de entrevistas?') && clearHistory()}
-        >
-          Borrar historial
-        </button>
-      </div>
     </Dropdown>
   );
 }

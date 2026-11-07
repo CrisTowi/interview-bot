@@ -1681,3 +1681,17 @@ code {
     max-height: calc(100dvh - 76px);
   }
 }
+
+.history-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.history-head .muted-link {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.menu > div:last-child > .overview-row:last-child {
+  border-bottom: 0;
+}

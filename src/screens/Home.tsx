@@ -39,7 +39,7 @@ interface Props {
 }
 
 export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
-  const { profile, setProfile, settings, history } = useApp();
+  const { profile, setProfile, settings, history, clearHistory, nostr } = useApp();
   const { ready, localStatus } = useEngineReady();
   const checking = settings.llm === 'local' && localStatus === 'checking';
   useDocumentTitle(`${APP_NAME} — Practica entrevistas behavioral`);
@@ -94,7 +94,23 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
 
       {history.length > 0 && (
         <section className="history">
-          <h2>Sesiones anteriores</h2>
+          <div className="history-head">
+            <h2>Sesiones anteriores</h2>
+            <button
+              className="link muted-link"
+              onClick={() => {
+                const where =
+                  nostr.mode === 'none'
+                    ? 'de este navegador'
+                    : 'de este navegador y de tus otros dispositivos sincronizados';
+                if (confirm(`¿Borrar tus ${history.length} sesiones anteriores ${where}? No se puede deshacer.`)) {
+                  clearHistory();
+                }
+              }}
+            >
+              Borrar historial
+            </button>
+          </div>
           <ul>
             {history.slice(0, 8).map((s) => (
               <li key={s.id}>
