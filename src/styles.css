@@ -1757,3 +1757,60 @@ main:focus,
 .flyout:focus {
   outline: none;
 }
+
+/* Skip link: hidden until a keyboard user tabs to it. */
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -48px;
+  z-index: 50;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 600;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 12px;
+}
+
+/*
+ * Windows High Contrast / forced colors: the browser drops background colors, so states that relied on
+ * them (selected language, active row, score bars, who is speaking) get system colors instead.
+ */
+@media (forced-colors: active) {
+  .lang-switch span[lang].active,
+  .chip.active,
+  .overview-row.active,
+  .picker-menu li.active,
+  .model-row.selected {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+  .dot,
+  .eq i {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+  .meter i {
+    forced-color-adjust: none;
+    background: Canvas;
+    border: 1px solid CanvasText;
+  }
+  .meter i.on {
+    background: CanvasText;
+  }
+  .verdict-scale li.current {
+    forced-color-adjust: none;
+    border-top-color: Highlight;
+    color: Highlight;
+  }
+  .tile-main.speaking .avatar,
+  .tile-self.speaking,
+  .mic-control.on {
+    outline: 3px solid Highlight;
+    outline-offset: 2px;
+  }
+}

@@ -8,6 +8,7 @@ import type { Company, Dimension, Focus, Lang, Seniority } from './types';
 const es = {
   locale: 'es-MX',
   langSwitch: 'Idioma de la app',
+  skipToContent: 'Saltar al contenido',
   title: {
     home: 'Practica entrevistas behavioral',
     interview: (name: string) => `Entrevista con ${name}`,
@@ -323,6 +324,7 @@ export type Dict = typeof es;
 const en: Dict = {
   locale: 'en-US',
   langSwitch: 'App language',
+  skipToContent: 'Skip to content',
   title: {
     home: 'Practice behavioral interviews',
     interview: (name) => `Interview with ${name}`,

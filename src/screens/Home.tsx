@@ -54,7 +54,7 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
   const [beforeLevel, levelToRole, roleToCompany, companyToFocus, afterFocus] = t.home.sentence;
 
   return (
-    <main className="home" tabIndex={-1}>
+    <main className="home" id="main" tabIndex={-1}>
       <h1 className="sr-only">
         {APP_NAME}: {t.title.home}
       </h1>

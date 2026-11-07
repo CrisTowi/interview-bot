@@ -86,7 +86,7 @@ export function ModelPicker({ value, onChange }: { value: string; onChange: (id:
           </div>
           <ul className="model-list" role="listbox" aria-label={t.models.listLabel}>
             {visible.map((m) => (
-              <li key={m.id}>
+              <li key={m.id} role="none">
                 <button
                   type="button"
                   role="option"
@@ -102,8 +102,12 @@ export function ModelPicker({ value, onChange }: { value: string; onChange: (id:
                 </button>
               </li>
             ))}
-            {visible.length === 0 && <li className="hint">{t.models.none}</li>}
           </ul>
+          {visible.length === 0 && (
+            <p className="hint" role="status">
+              {t.models.none}
+            </p>
+          )}
           <p className="hint">{t.models.note}</p>
         </div>
       )}

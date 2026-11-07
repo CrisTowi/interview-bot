@@ -5,6 +5,7 @@ import { SettingsMenu } from './components/SettingsMenu';
 import { Home } from './screens/Home';
 import { Interview } from './screens/Interview';
 import { Summary } from './screens/Summary';
+import { useT } from './i18n';
 import { APP_NAME } from './lib/title';
 import { startSync } from './sync/nostrSync';
 import type { ChatMessage, SessionSummary } from './types';
@@ -16,6 +17,7 @@ type Screen =
 
 export function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
+  const t = useT();
   const [menu, setMenu] = useState<'profile' | 'settings' | null>(null);
   const closeMenu = useCallback(() => setMenu(null), []);
   const toggle = (name: 'profile' | 'settings') => () => setMenu((m) => (m === name ? null : name));
@@ -39,6 +41,16 @@ export function App() {
 
   return (
     <div className={screen.name === 'interview' ? 'app in-call' : 'app'}>
+      <a
+        className="skip-link"
+        href="#main"
+        onClick={(e) => {
+          e.preventDefault();
+          document.querySelector<HTMLElement>('main')?.focus();
+        }}
+      >
+        {t.skipToContent}
+      </a>
       {/* The call takes the whole screen, like a real video call. */}
       {screen.name !== 'interview' && (
         <header className="topbar">

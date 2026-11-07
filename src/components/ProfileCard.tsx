@@ -95,7 +95,7 @@ export function ProfileCard({ onOpenSettings }: { onOpenSettings: () => void }) 
       </div>
 
       {step ? (
-        <p className="profile-step">
+        <p className="profile-step" role="status">
           <span className="dots" /> {step}
         </p>
       ) : hasBriefing ? (

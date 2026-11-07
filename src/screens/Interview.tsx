@@ -184,7 +184,7 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
   }
 
   return (
-    <main className="call" tabIndex={-1}>
+    <main className="call" id="main" tabIndex={-1}>
       <h1 className="sr-only">{t.title.interview(interviewerName)}</h1>
       <div className="call-body">
         <section className="stage" aria-label={t.interview.call}>

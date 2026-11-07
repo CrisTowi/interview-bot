@@ -94,7 +94,7 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
 
     if (!answered) {
       return (
-        <main className="summary state" tabIndex={-1}>
+        <main className="summary state" id="main" tabIndex={-1}>
           <h1 className="sr-only">{t.title.result}</h1>
           <img className="state-mascot" src="/favicon.svg" alt="" width={96} height={96} />
           <h2>{t.summary.emptyTitle}</h2>
@@ -122,7 +122,7 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
     }
 
     return (
-      <main className="summary state" tabIndex={-1}>
+      <main className="summary state" id="main" tabIndex={-1}>
         <h1 className="sr-only">{t.title.result}</h1>
         <img
           className={error ? 'state-mascot' : 'state-mascot thinking'}
@@ -166,7 +166,7 @@ export function Summary({ existing, transcript, onHome, onRetry }: Props) {
   const focusLabel = capitalize(t.options.focusLabels[summary.focus] ?? t.options.focusLabels.mixed);
 
   return (
-    <main className="summary" tabIndex={-1}>
+    <main className="summary" id="main" tabIndex={-1}>
       <h1 className="sr-only">{t.title.result}</h1>
       <p className="summary-meta muted">
         {t.summary.meta(
