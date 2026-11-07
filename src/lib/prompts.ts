@@ -4,41 +4,48 @@ const LANGUAGE: Record<Lang, string> = { es: 'Spanish', en: 'English' };
 
 const FOCUS_GUIDE: Record<Focus, string> = {
   mixed: 'Cover a mix of competencies: leadership, conflict, failure, impact and ambiguity.',
-  leadership: 'Focus on leadership and influence: leading without authority, mentoring, driving decisions, raising the bar.',
-  conflict: 'Focus on conflict: disagreements with peers or managers, pushing back, difficult stakeholders, resolving tension.',
+  leadership:
+    'Focus on leadership and influence: leading without authority, mentoring, driving decisions, raising the bar.',
+  conflict:
+    'Focus on conflict: disagreements with peers or managers, pushing back, difficult stakeholders, resolving tension.',
   failure: 'Focus on failure and growth: mistakes, missed deadlines, negative feedback, what they learned and changed.',
-  impact: 'Focus on impact: their most significant achievements, how they measured results, prioritization and trade-offs.',
-  ambiguity: 'Focus on ambiguity: unclear requirements, shifting priorities, making decisions with incomplete information.',
+  impact:
+    'Focus on impact: their most significant achievements, how they measured results, prioritization and trade-offs.',
+  ambiguity:
+    'Focus on ambiguity: unclear requirements, shifting priorities, making decisions with incomplete information.',
 };
 
 const COMPANY_GUIDE: Record<Company, string> = {
-  Google: 'Follow the Google style: assess "Googleyness and Leadership": collaboration, humility, comfort with ambiguity, doing the right thing.',
+  Google:
+    'Follow the Google style: assess "Googleyness and Leadership": collaboration, humility, comfort with ambiguity, doing the right thing.',
   Meta: 'Follow the Meta style: assess drive, conflict resolution, growth mindset and impact at scale; expect fast-paced, direct follow-ups.',
   Amazon:
     'Follow the Amazon style: map every question to a Leadership Principle (Ownership, Dive Deep, Bias for Action, Customer Obsession, Earn Trust, Have Backbone; Disagree and Commit…) and dig deep with follow-ups.',
-  Startup: 'Follow a startup style: assess ownership, scrappiness, working with little structure and wearing many hats.',
+  Startup:
+    'Follow a startup style: assess ownership, scrappiness, working with little structure and wearing many hats.',
 };
 
-const INTERVIEWER_NAMES: Record<Lang, string[]> = {
-  es: ['Laura', 'Daniel', 'Sofía', 'Andrés', 'Valeria', 'Martín'],
-  en: ['Sarah', 'David', 'Emily', 'Michael', 'Priya', 'James'],
-};
-
-export function pickInterviewerName(lang: Lang): string {
-  const names = INTERVIEWER_NAMES[lang];
-  return names[Math.floor(Math.random() * names.length)];
-}
-
-export function buildSystemPrompt(p: Profile, history: SessionSummary[], interviewerName: string): string {
+export function buildSystemPrompt(
+  p: Profile,
+  history: SessionSummary[],
+  interviewerName: string,
+  gender: 'female' | 'male' | null,
+): string {
   const lines: (string | null)[] = [
     `You are ${interviewerName}, a senior interviewer at ${p.company}, running a realistic behavioral interview for a ${p.seniority} ${p.role} position over a video call.`,
+    // Spanish adjectives agree with the speaker ("encantada"/"encantado"), so the persona must know it.
+    gender
+      ? `You are a ${gender === 'female' ? 'woman' : 'man'}; when you refer to yourself, use the matching grammatical gender.`
+      : null,
     COMPANY_GUIDE[p.company],
     FOCUS_GUIDE[p.focus],
     p.cvSummary?.trim()
       ? `Candidate's background, summarized from their CV/LinkedIn:\n${p.cvSummary.trim()}\nUse it to ask about specific roles and projects from their history, and notice when a story doesn't match it. Never recite it back.`
       : null,
     p.background.trim() ? `What the candidate shared about themselves: ${p.background.trim()}` : null,
-    p.salary.trim() ? `Candidate's salary expectation: ${p.salary}. Expect the scope of impact that compensation implies.` : null,
+    p.salary.trim()
+      ? `Candidate's salary expectation: ${p.salary}. Expect the scope of impact that compensation implies.`
+      : null,
     '',
     'Rules:',
     `- Speak only in ${LANGUAGE[p.lang]}.`,
@@ -64,7 +71,9 @@ export function buildSystemPrompt(p: Profile, history: SessionSummary[], intervi
 
 export function kickoffMessage(lang: Lang): ChatMessage {
   const content =
-    lang === 'es' ? '(El candidato se ha conectado. Comienza la entrevista.)' : '(The candidate has joined. Start the interview.)';
+    lang === 'es'
+      ? '(El candidato se ha conectado. Comienza la entrevista.)'
+      : '(The candidate has joined. Start the interview.)';
   return { role: 'user', content, hidden: true };
 }
 

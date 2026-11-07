@@ -1,4 +1,5 @@
 import type { Lang, Settings } from '../types';
+import type { Cast } from './casting';
 
 /** Common interface so the interview loop doesn't care which TTS layer is behind it. */
 export interface VoiceEngine {
@@ -22,21 +23,25 @@ function toSpeakable(text: string, lang: Lang): string {
 class NativeVoice implements VoiceEngine {
   private generation = 0;
 
-  constructor(private lang: Lang) {}
+  constructor(
+    private lang: Lang,
+    /** Chosen by the casting so it matches the interviewer's gender. */
+    private voice?: SpeechSynthesisVoice,
+  ) {}
 
   speak(text: string): Promise<void> {
     this.stop();
     const generation = this.generation;
     // Chrome cuts off long utterances, so speak sentence by sentence.
     const chunks = toSpeakable(text, this.lang).match(/[^.!?¿¡]+[.!?]*|[¿¡][^.!?]+[.!?]*/g) ?? [];
-    const voice = this.pickVoice();
+    const voice = this.voice;
 
     return new Promise((resolve) => {
       let i = 0;
       const next = () => {
         if (generation !== this.generation || i >= chunks.length) return resolve();
         const utterance = new SpeechSynthesisUtterance(chunks[i++].trim());
-        utterance.lang = LOCALES[this.lang];
+        utterance.lang = voice?.lang ?? LOCALES[this.lang];
         if (voice) utterance.voice = voice;
         utterance.rate = 1.05;
         utterance.onend = next;
@@ -51,11 +56,6 @@ class NativeVoice implements VoiceEngine {
     this.generation++;
     speechSynthesis.cancel();
   }
-
-  private pickVoice(): SpeechSynthesisVoice | undefined {
-    const voices = speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith(this.lang));
-    return voices.find((v) => /google|natural|premium|enhanced/i.test(v.name)) ?? voices[0];
-  }
 }
 
 /** Layer 2: OpenAI TTS / ElevenLabs with the user's key, through the stateless /api/tts proxy. */
@@ -67,6 +67,8 @@ class PremiumVoice implements VoiceEngine {
   constructor(
     private config: Settings['premiumTts'],
     private lang: Lang,
+    /** Voice id matching the interviewer (empty setting = automatic). */
+    private voiceId: string,
   ) {}
 
   async speak(text: string): Promise<void> {
@@ -78,7 +80,7 @@ class PremiumVoice implements VoiceEngine {
       body: JSON.stringify({
         provider: this.config.provider,
         apiKey: this.config.apiKey.trim(),
-        voice: this.config.voice.trim(),
+        voice: this.voiceId,
         text: toSpeakable(text, this.lang),
       }),
     });
@@ -112,8 +114,10 @@ class SilentVoice implements VoiceEngine {
   stop() {}
 }
 
-export function createVoice(settings: Settings, lang: Lang): VoiceEngine {
-  if (settings.tts === 'premium') return new PremiumVoice(settings.premiumTts, lang);
-  if (settings.tts === 'native' && 'speechSynthesis' in window) return new NativeVoice(lang);
+export function createVoice(settings: Settings, lang: Lang, cast: Cast): VoiceEngine {
+  if (settings.tts === 'premium') {
+    return new PremiumVoice(settings.premiumTts, lang, cast.premiumVoice ?? settings.premiumTts.voice.trim());
+  }
+  if (settings.tts === 'native' && 'speechSynthesis' in window) return new NativeVoice(lang, cast.nativeVoice);
   return new SilentVoice();
 }

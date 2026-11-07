@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   CaptionsIcon,
   HangUpIcon,
@@ -11,10 +11,11 @@ import {
   VolumeIcon,
 } from '../components/icons';
 import { createAgent, type InterviewAgent } from '../engines/agent';
+import { castInterviewer } from '../engines/casting';
 import { useSpeechInput } from '../engines/speechInput';
 import { createVoice, type VoiceEngine } from '../engines/voice';
 import { capitalize, useT } from '../i18n';
-import { buildSystemPrompt, kickoffMessage, pickInterviewerName } from '../lib/prompts';
+import { buildSystemPrompt, kickoffMessage } from '../lib/prompts';
 import { APP_NAME, useDocumentTitle } from '../lib/title';
 import { useApp } from '../store';
 import type { ChatMessage } from '../types';
@@ -31,9 +32,10 @@ function useElapsed(): string {
 /** A simulated video call: the interviewer's tile, your tile, live captions and call controls. */
 export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => void }) {
   const { profile, settings, history } = useApp();
-  // Frozen for the whole session: the prompt is built once from profile + past summaries.
-  const interviewerName = useMemo(() => pickInterviewerName(profile.lang), []);
-  const system = useMemo(() => buildSystemPrompt(profile, history, interviewerName), []);
+  // Chosen once per session, together with a voice of the same gender (see engines/casting.ts).
+  const [interviewerName, setInterviewerName] = useState('');
+  // Frozen for the whole session: built once from profile + past summaries + the interviewer.
+  const system = useRef('');
 
   const agent = useRef<InterviewAgent | null>(null);
   const voice = useRef<VoiceEngine | null>(null);
@@ -49,7 +51,7 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
   const [download, setDownload] = useState<number | null>(null);
   const elapsed = useElapsed();
   const t = useT();
-  useDocumentTitle(`${t.title.interview(interviewerName)} — ${APP_NAME}`);
+  useDocumentTitle(`${t.title.interview(interviewerName || '…')} — ${APP_NAME}`);
   const mic = useSpeechInput(profile.lang, setInput);
   const [captions, setCaptions] = useState(true);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
@@ -61,8 +63,14 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
   useEffect(() => {
     mounted.current = true;
     agent.current = createAgent(settings, profile.lang, (ratio) => setDownload(ratio < 1 ? ratio : null));
-    voice.current = createVoice(settings, profile.lang);
-    advance([kickoffMessage(profile.lang)]);
+    setThinking(true);
+    castInterviewer(settings, profile.lang).then((cast) => {
+      if (!mounted.current) return;
+      setInterviewerName(cast.name);
+      system.current = buildSystemPrompt(profile, history, cast.name, cast.gender);
+      voice.current = createVoice(settings, profile.lang, cast);
+      advance([kickoffMessage(profile.lang)]);
+    });
     return () => {
       mounted.current = false;
       agent.current?.destroy();
@@ -98,7 +106,7 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
     setThinking(true);
     setError('');
     try {
-      const text = (await agent.current!.reply(system, next)).trim();
+      const text = (await agent.current!.reply(system.current, next)).trim();
       if (!mounted.current) return;
       setMessages([...next, { role: 'assistant', content: text }]);
       setThinking(false);
@@ -172,7 +180,7 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
         t.interview.downloading(Math.round(download * 100))
       ) : (
         <span className="caption-muted">
-          {t.interview.thinking(interviewerName)} <span className="dots" />
+          {interviewerName ? t.interview.thinking(interviewerName) : t.interview.connecting} <span className="dots" />
         </span>
       );
   } else if (lastAssistant) {
@@ -206,7 +214,7 @@ export function Interview({ onEnd }: { onEnd: (transcript: ChatMessage[]) => voi
                 <i />
               </span>
             )}
-            {interviewerName}, {profile.company}
+            {interviewerName ? `${interviewerName}, ${profile.company}` : t.interview.connecting}
           </span>
 
           <div className={`tile-self ${mic.listening ? 'speaking' : ''}`}>

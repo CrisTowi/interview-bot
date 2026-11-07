@@ -107,8 +107,8 @@ const es = {
     interviewerVoice: 'Voz del entrevistador',
     voiceKey: 'API key de voz',
     voice: 'Voz',
-    openaiVoicePlaceholder: 'Voz (alloy, nova, onyx…)',
-    voiceId: 'Voice ID',
+    openaiVoicePlaceholder: 'Automática según el entrevistador (o: nova, onyx…)',
+    voiceId: 'Automática según el entrevistador (o un Voice ID)',
     interviewLang: 'Idioma de la entrevista',
   },
   sync: {
@@ -232,6 +232,7 @@ const es = {
   },
   interview: {
     call: 'Videollamada',
+    connecting: 'Conectando…',
     topic: (focus: string, company: string) => `${focus} en ${company}`,
     thinking: (name: string) => `${name} está pensando`,
     downloading: (percent: number) => `Descargando el modelo local… ${percent}%`,
@@ -420,8 +421,8 @@ const en: Dict = {
     interviewerVoice: "Interviewer's voice",
     voiceKey: 'Voice API key',
     voice: 'Voice',
-    openaiVoicePlaceholder: 'Voice (alloy, nova, onyx…)',
-    voiceId: 'Voice ID',
+    openaiVoicePlaceholder: "Automatic, matching the interviewer (or: nova, onyx…)",
+    voiceId: 'Automatic, matching the interviewer (or a Voice ID)',
     interviewLang: 'Interview language',
   },
   sync: {
@@ -544,6 +545,7 @@ const en: Dict = {
   },
   interview: {
     call: 'Video call',
+    connecting: 'Connecting…',
     topic: (focus, company) => `${focus} at ${company}`,
     thinking: (name) => `${name} is thinking`,
     downloading: (percent) => `Downloading the local model… ${percent}%`,

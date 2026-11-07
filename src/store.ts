@@ -9,10 +9,13 @@ export const DEFAULT_MODELS: Record<CloudProvider, string> = {
   openrouter: 'anthropic/claude-sonnet-5.5',
 };
 
+/** Empty = automatic: the voice is picked to match the interviewer's gender (engines/casting.ts). */
 export const DEFAULT_VOICES: Record<TtsProvider, string> = {
-  openai: 'alloy',
-  elevenlabs: '21m00Tcm4TlvDQ8ikWAM',
+  openai: '',
+  elevenlabs: '',
 };
+/** Former fixed defaults, migrated to automatic. */
+const LEGACY_DEFAULT_VOICES = ['alloy', '21m00Tcm4TlvDQ8ikWAM'];
 
 const MAX_HISTORY = 50;
 
@@ -124,6 +127,8 @@ export const useApp = create<AppState>()(
       // Fill in fields added since the data was saved instead of dropping them.
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<AppState>;
+        const premium = p.settings?.premiumTts;
+        if (premium && LEGACY_DEFAULT_VOICES.includes(premium.voice)) p.settings!.premiumTts = { ...premium, voice: '' };
         return {
           ...current,
           ...p,
