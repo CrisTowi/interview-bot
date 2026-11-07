@@ -112,14 +112,17 @@ const es = {
     interviewLang: 'Idioma de la entrevista',
   },
   sync: {
-    summaryOff: 'Desactivada: tus datos solo están en este navegador',
+    summaryOff: 'Guardado en este navegador; no necesitas configurar nada',
     summaryError: 'No se pudo sincronizar',
     summarySyncing: 'Sincronizando tus datos…',
     summarySynced: 'Perfil, historial y API keys al día',
     summaryKeysLocal: 'Perfil e historial al día; las API keys solo están en este navegador',
     summaryNeedsUnlock: 'Falta tu contraseña para traer las API keys',
     summaryNeedsUpdate: 'Tus API keys cambiaron y falta actualizarlas',
-    lead: 'Usa tu perfil y tu historial de entrevistas en cualquier dispositivo, sin registrarte en ningún servidor.',
+    localNote:
+      'Tu perfil, historial y API keys ya se guardan en este navegador, sin cuentas. Puedes usar la app así, sin configurar nada más.',
+    optionalTitle: 'Opcional: usar en otros dispositivos',
+    lead: 'Si quieres continuar en otro dispositivo, sincroniza tus datos cifrados con Nostr. Sin registrarte en ningún servidor.',
     howTitle: '¿Cómo funciona?',
     how: [
       'Usas una clave de Nostr: hace de usuario y contraseña a la vez, sin registrarte en ningún sitio.',
@@ -426,14 +429,17 @@ const en: Dict = {
     interviewLang: 'Interview language',
   },
   sync: {
-    summaryOff: 'Off: your data only lives in this browser',
+    summaryOff: 'Saved in this browser; nothing to set up',
     summaryError: "Couldn't sync",
     summarySyncing: 'Syncing your data…',
     summarySynced: 'Profile, history and API keys up to date',
     summaryKeysLocal: 'Profile and history up to date; API keys stay in this browser',
     summaryNeedsUnlock: 'Your password is needed to bring in your API keys',
     summaryNeedsUpdate: 'Your API keys changed and need updating',
-    lead: 'Use your profile and interview history on any device, without signing up to any server.',
+    localNote:
+      'Your profile, history and API keys are already saved in this browser, with no account. You can use the app like this without setting anything else up.',
+    optionalTitle: 'Optional: use it on other devices',
+    lead: 'If you want to continue on another device, sync your encrypted data with Nostr. No sign-up on any server.',
     howTitle: 'How does it work?',
     how: [
       'You use a Nostr key: it works as username and password at once, with no sign-up anywhere.',

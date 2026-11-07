@@ -67,7 +67,8 @@ export function useSyncOverview() {
   else keyState = localFingerprint && localFingerprint === nostr.keysFingerprint ? 'synced' : 'needs-update';
 
   let summary: { text: string; tone: string };
-  if (nostr.mode === 'none') summary = { text: t.sync.summaryOff, tone: '' };
+  // Not syncing is a perfectly good state (local-only), not a warning.
+  if (nostr.mode === 'none') summary = { text: t.sync.summaryOff, tone: 'ok' };
   else if (status === 'error') summary = { text: t.sync.summaryError, tone: 'warn' };
   else if (status !== 'synced') summary = { text: t.sync.summarySyncing, tone: '' };
   else
@@ -113,10 +114,8 @@ export function SyncSection() {
   if (nostr.mode === 'none') {
     return (
       <div className="menu-group">
-        <p className="sync-summary">
-          <span className={`dot ${summary.tone}`} />
-          {summary.text}
-        </p>
+        <p className="sync-local">{t.sync.localNote}</p>
+        <span className="menu-label sync-optional">{t.sync.optionalTitle}</span>
         <p className="sync-lead">{t.sync.lead}</p>
         <HowItWorks />
         {hasExtension() && (
