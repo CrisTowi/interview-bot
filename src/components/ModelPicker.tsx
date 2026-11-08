@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { fetchOpenRouterModels, interviewCostLabel, priceLabel, type ModelOption } from '../lib/openrouter';
 import { useT } from '../i18n';
 import { ChevronIcon } from './icons';
+import { focusOnMount } from './ui';
 
 type Filter = 'all' | 'free' | 'paid' | 'agent';
 
@@ -65,7 +66,7 @@ export function ModelPicker({ value, onChange }: { value: string; onChange: (id:
       {open && models && (
         <div className="model-panel">
           <input
-            autoFocus
+            ref={focusOnMount}
             placeholder={t.models.search}
             aria-label={t.models.searchLabel}
             value={query}

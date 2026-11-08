@@ -12,9 +12,7 @@ import type { InterviewResult } from './screens/Interview';
 import type { SessionSummary } from './types';
 
 type Screen =
-  | { name: 'home' }
-  | { name: 'interview' }
-  | { name: 'summary'; result?: InterviewResult; existing?: SessionSummary };
+  { name: 'home' } | { name: 'interview' } | { name: 'summary'; result?: InterviewResult; existing?: SessionSummary };
 
 export function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' });

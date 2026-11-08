@@ -27,7 +27,10 @@ export function InlinePicker<T extends string>({
   const root = useRef<HTMLSpanElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const list = useRef<HTMLUListElement>(null);
-  const selectedIndex = Math.max(0, options.findIndex((o) => o.value === value));
+  const selectedIndex = Math.max(
+    0,
+    options.findIndex((o) => o.value === value),
+  );
   const current = options[selectedIndex];
 
   function show() {
@@ -104,6 +107,8 @@ export function InlinePicker<T extends string>({
           onKeyDown={onListKey}
         >
           {options.map((o, i) => (
+            // Keyboard is handled by the listbox (arrows/Enter on aria-activedescendant); the click is the mouse path.
+            // eslint-disable-next-line jsx-a11y/click-events-have-key-events
             <li
               key={o.value}
               id={`${id}-${i}`}
@@ -119,7 +124,14 @@ export function InlinePicker<T extends string>({
               </span>
               {o.value === value && (
                 <svg className="picker-check" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                  <path d="M5 12.5l4.5 4.5L19 7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M5 12.5l4.5 4.5L19 7"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               )}
             </li>

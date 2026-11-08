@@ -1,6 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { CloudProvider, Lang, NostrIdentity, Profile, SessionSummary, Settings, SyncPayload, TtsProvider } from './types';
+import type {
+  CloudProvider,
+  Lang,
+  NostrIdentity,
+  Profile,
+  SessionSummary,
+  Settings,
+  SyncPayload,
+  TtsProvider,
+} from './types';
 
 export const DEFAULT_MODELS: Record<CloudProvider, string> = {
   openai: 'gpt-5-mini',
@@ -124,11 +133,15 @@ export const useApp = create<AppState>()(
     {
       name: 'interview-bot',
       version: 3,
+      // Without this, zustand silently DISCARDS state saved under an older version. Keep it as is and let
+      // `merge` below fill in new fields and migrate old values.
+      migrate: (persisted) => persisted as AppState,
       // Fill in fields added since the data was saved instead of dropping them.
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<AppState>;
         const premium = p.settings?.premiumTts;
-        if (premium && LEGACY_DEFAULT_VOICES.includes(premium.voice)) p.settings!.premiumTts = { ...premium, voice: '' };
+        if (premium && LEGACY_DEFAULT_VOICES.includes(premium.voice))
+          p.settings!.premiumTts = { ...premium, voice: '' };
         return {
           ...current,
           ...p,

@@ -26,7 +26,11 @@ export interface InterviewAgent {
   destroy(): void;
 }
 
-export function createAgent(settings: Settings, lang: Lang, onDownloadProgress?: (ratio: number) => void): InterviewAgent {
+export function createAgent(
+  settings: Settings,
+  lang: Lang,
+  onDownloadProgress?: (ratio: number) => void,
+): InterviewAgent {
   return settings.llm === 'local' ? new LocalAgent(lang, onDownloadProgress) : new CloudAgent(settings.cloud);
 }
 

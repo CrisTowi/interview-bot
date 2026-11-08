@@ -4,7 +4,7 @@ import { buildCvSummaryPrompt, extractText } from '../lib/cv';
 import { useT } from '../i18n';
 import { useApp } from '../store';
 import { Dropdown } from './Dropdown';
-import { useEngineReady } from './ui';
+import { focusOnMount, useEngineReady } from './ui';
 
 type Mode = 'choose' | 'linkedin' | 'paste';
 
@@ -174,7 +174,7 @@ export function ProfileCard({ onOpenSettings }: { onOpenSettings: () => void }) 
             <div className="profile-panel">
               <textarea
                 rows={6}
-                autoFocus
+                ref={focusOnMount}
                 aria-label={t.profile.pasteText}
                 value={pasted}
                 onChange={(e) => setPasted(e.target.value)}
