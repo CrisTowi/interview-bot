@@ -106,6 +106,8 @@ export function voiceGender(voice: SpeechSynthesisVoice): Gender | null {
   return null;
 }
 
+const isNovelty = (voice: SpeechSynthesisVoice) => words(voice.name).some((x) => NOVELTY.has(x));
+
 function quality(voice: SpeechSynthesisVoice, lang: Lang): number {
   const w = words(voice.name);
   let score = 0;
@@ -113,7 +115,6 @@ function quality(voice: SpeechSynthesisVoice, lang: Lang): number {
   if (w[0] === 'google') score += 2;
   if (lang === 'es' && /^es-(mx|us|419)/i.test(voice.lang)) score += 1; // closer to a Latin American interviewer
   if (lang === 'en' && /^en-us/i.test(voice.lang)) score += 1;
-  if (w.some((x) => NOVELTY.has(x))) score -= 10;
   return score;
 }
 
@@ -134,12 +135,18 @@ async function castNative(lang: Lang): Promise<Cast> {
   const byGender: Record<Gender, SpeechSynthesisVoice[]> = { female: [], male: [] };
   for (const v of voices) {
     const g = voiceGender(v);
-    if (g && quality(v, lang) > -10) byGender[g].push(v);
+    // Novelty voices are excluded outright (a score threshold let regional ones slip through).
+    if (g && !isNovelty(v)) byGender[g].push(v);
   }
   const available = (['female', 'male'] as const).filter((g) => byGender[g].length);
   if (!available.length) {
     // No voice we can recognize: any name, the best voice we have.
-    return { name: pick([...NAMES[lang].female, ...NAMES[lang].male]), gender: null, nativeVoice: best(voices) };
+    const usable = voices.filter((v) => !isNovelty(v));
+    return {
+      name: pick([...NAMES[lang].female, ...NAMES[lang].male]),
+      gender: null,
+      nativeVoice: best(usable.length ? usable : voices),
+    };
   }
   const gender = pick([...available]);
   return { name: pick(NAMES[lang][gender]), gender, nativeVoice: best(byGender[gender]) };
