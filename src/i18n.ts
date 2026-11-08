@@ -1,5 +1,5 @@
 import { useApp } from './store';
-import type { Company, Dimension, Focus, Lang, Seniority } from './types';
+import type { Company, Dimension, Duration, Focus, Lang, Seniority } from './types';
 
 /**
  * UI strings. Spanish defines the shape; English must match it key for key (the type enforces it).
@@ -63,15 +63,26 @@ const es = {
       impact: 'Tus logros más grandes y cómo los mediste',
       ambiguity: 'Decidir con información incompleta',
     } as Record<Focus, string>,
+    durationLabels: {
+      quick: '10 minutos',
+      standard: '20 minutos',
+      full: '30 minutos',
+    } as Record<Duration, string>,
+    durationHints: {
+      quick: '2 preguntas, para cuando tienes poco tiempo',
+      standard: '3 preguntas con su seguimiento',
+      full: '5 preguntas, lo que dura una ronda real',
+    } as Record<Duration, string>,
   },
   home: {
-    /** The text around the four pickers: before level, level→role, role→company, company→focus, after focus. */
-    sentence: ['Practica una entrevista behavioral de nivel', 'para', 'al estilo de', ', sobre', '.'],
+    /** The text around the pickers: before level, level→role, role→company, company→focus, focus→length, after. */
+    sentence: ['Practica una entrevista behavioral de nivel', 'para', 'al estilo de', ', sobre', ', de', '.'],
     level: 'Nivel',
     role: 'Puesto',
     rolePlaceholder: 'tu puesto',
     company: 'Empresa',
     focus: 'Enfoque',
+    duration: 'Duración',
     start: 'Empezar entrevista',
     chooseEngine: 'Elegir motor de IA',
     change: 'Cambiar',
@@ -255,6 +266,11 @@ const es = {
     basicMode: 'Modo básico',
     basicModeTitle: 'Este modelo no usa herramientas: el entrevistador no toma notas y tú decides cuándo terminar',
     topic: (focus: string, company: string) => `${focus} en ${company}`,
+    timeLabel: 'Tiempo de la entrevista',
+    timeValue: (elapsed: number, total: number) =>
+      elapsed < total
+        ? `${elapsed} de ${total} minutos, quedan ${total - elapsed}`
+        : `${elapsed} de ${total} minutos, tiempo cumplido`,
     thinking: (name: string) => `${name} está pensando`,
     downloading: (percent: number) => `Descargando el modelo local… ${percent}%`,
     you: 'Tú',
@@ -403,14 +419,25 @@ const en: Dict = {
       impact: 'Your biggest wins and how you measured them',
       ambiguity: 'Deciding with incomplete information',
     },
+    durationLabels: {
+      quick: '10 minutes',
+      standard: '20 minutes',
+      full: '30 minutes',
+    },
+    durationHints: {
+      quick: '2 questions, for when you are short on time',
+      standard: '3 questions with their follow-ups',
+      full: '5 questions, as long as a real round',
+    },
   },
   home: {
-    sentence: ['Practice a behavioral interview at', 'level for', 'in the style of', ', focused on', '.'],
+    sentence: ['Practice a behavioral interview at', 'level for', 'in the style of', ', focused on', ', for', '.'],
     level: 'Level',
     role: 'Role',
     rolePlaceholder: 'your role',
     company: 'Company',
     focus: 'Focus',
+    duration: 'Length',
     start: 'Start interview',
     chooseEngine: 'Choose an AI engine',
     change: 'Change',
@@ -593,6 +620,11 @@ const en: Dict = {
     basicMode: 'Basic mode',
     basicModeTitle: "This model doesn't use tools: the interviewer takes no notes and you decide when to end",
     topic: (focus, company) => `${focus} at ${company}`,
+    timeLabel: 'Interview time',
+    timeValue: (elapsed, total) =>
+      elapsed < total
+        ? `${elapsed} of ${total} minutes, ${total - elapsed} left`
+        : `${elapsed} of ${total} minutes, time is up`,
     thinking: (name) => `${name} is thinking`,
     downloading: (percent) => `Downloading the local model… ${percent}%`,
     you: 'You',

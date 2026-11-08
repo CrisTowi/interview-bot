@@ -2,12 +2,15 @@ export type Lang = 'es' | 'en';
 export type Seniority = 'Junior' | 'Mid' | 'Senior' | 'Staff';
 export type Company = 'Google' | 'Meta' | 'Amazon' | 'Startup';
 export type Focus = 'mixed' | 'leadership' | 'conflict' | 'failure' | 'impact' | 'ambiguity';
+/** Planned length of the interview; see DURATIONS in lib/prompts.ts. */
+export type Duration = 'quick' | 'standard' | 'full';
 
 export interface Profile {
   role: string;
   seniority: Seniority;
   company: Company;
   focus: Focus;
+  duration: Duration;
   /** Free-form notes the interviewer can draw on (years, domain, team size…). */
   background: string;
   /** Briefing distilled from the candidate's CV or LinkedIn PDF (the file itself is never stored). */
@@ -34,6 +37,8 @@ export interface ChatMessage {
   content: string;
   /** Sent to the model but not shown in the transcript (e.g. the kickoff message). */
   hidden?: boolean;
+  /** Sent to the model after `content` but never shown or evaluated (e.g. a time check). */
+  context?: string;
 }
 
 export type Dimension = 'structure' | 'specificity' | 'ownership' | 'impact' | 'scope' | 'communication';

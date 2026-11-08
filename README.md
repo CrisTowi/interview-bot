@@ -10,7 +10,7 @@ It runs entirely in your browser: no accounts, no database, and no API keys of o
 
 ## What it does
 
-- **Set up in one sentence.** _"Practice a behavioral interview at **Senior** level for **Software Engineer** in the style of **Amazon**, focused on **conflict**."_ Every highlighted word is a picker.
+- **Set up in one sentence.** _"Practice a behavioral interview at **Senior** level for **Software Engineer** in the style of **Amazon**, focused on **conflict**."_ Every highlighted word is a picker, including how long the interview runs (10, 20 or 30 minutes).
 - **A video call, not a chat.** The interviewer speaks (browser voice, OpenAI TTS or ElevenLabs) and you answer by voice or by typing. Live captions and a full transcript are on by default.
 - **An interviewer that acts like one.** With models that support tool use, it takes notes with your exact words, checks which criteria still lack evidence before choosing the next question, and hangs up when it's done. Models without tools run in a clearly labeled basic mode.
 - **Knows your background.** Upload your CV or your LinkedIn PDF and it asks about your real projects. Only a short summary is kept, never the file.

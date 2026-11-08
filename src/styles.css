@@ -517,6 +517,7 @@ textarea:focus,
   --call-fg: #f1f0ec;
   --call-muted: #a9a79f;
   --call-live: #8fbfae;
+  --call-over: #d9b25f;
   height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -554,6 +555,30 @@ textarea:focus,
 }
 .call-timer {
   font-variant-numeric: tabular-nums;
+}
+.call-timer-total {
+  opacity: 0.75;
+}
+.call-timer.over {
+  color: var(--call-over);
+}
+
+/* Thin bar along the top of the stage: how much of the planned length has gone by. */
+.call-progress {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: rgb(255 255 255 / 0.08);
+  z-index: 3;
+}
+.call-progress span {
+  display: block;
+  height: 100%;
+  background: var(--call-live);
+  transition: width 1s linear;
+}
+.call-progress.over span {
+  background: var(--call-over);
 }
 
 .tile-main {
@@ -1005,6 +1030,9 @@ textarea:focus,
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
+  }
+  .call-progress span {
+    transition: none;
   }
 }
 .dot:not(.ok):not(.warn) {
@@ -1796,7 +1824,8 @@ main:focus,
     color: HighlightText;
   }
   .dot,
-  .eq i {
+  .eq i,
+  .call-progress span {
     forced-color-adjust: none;
     background: CanvasText;
   }

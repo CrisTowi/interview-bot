@@ -66,6 +66,7 @@ describe('applyRemote', () => {
       seniority: 'Staff',
       company: 'Google',
       focus: 'impact',
+      duration: 'quick',
       background: '',
       cvSummary: '',
       salary: '',
@@ -120,7 +121,7 @@ describe('loading saved data from an older version', () => {
   it('fills in fields added later instead of dropping the saved state', async () => {
     const useApp = await freshStore({ profile: { role: 'Saved role', lang: 'es' }, settings: { llm: 'cloud' } });
     const { profile, settings } = useApp.getState();
-    expect(profile).toMatchObject({ role: 'Saved role', focus: 'mixed', cvSummary: '' });
+    expect(profile).toMatchObject({ role: 'Saved role', focus: 'mixed', duration: 'full', cvSummary: '' });
     expect(settings).toMatchObject({ llm: 'cloud', tts: 'native' });
   });
 
