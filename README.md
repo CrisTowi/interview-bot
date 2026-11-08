@@ -1,55 +1,60 @@
-# interview-bot
+# Interview Bot
 
-Simulador de entrevistas **behavioral** estilo Big Tech con IA (STAR, Leadership Principles, etc.). Privado: sin cuentas, sin base de datos y sin guardar nada en el servidor.
+Practice behavioral interviews (STAR, Amazon's Leadership Principles, Google, Meta, startups) with an AI interviewer that talks to you on a simulated video call, follows up on vague answers, takes notes and gives you a hiring-committee verdict at the end.
 
-## Cómo funciona
+It runs entirely in your browser: no accounts, no database, and no API keys of ours. Use Chrome's built-in AI on your own device for free, or bring your own key.
 
-- **Frontend estático** (Vite + React + TypeScript, Zustand). El perfil, los ajustes, las API keys y los resúmenes se guardan en el `localStorage` del navegador y, si lo activas, se sincronizan cifrados por Nostr.
-- **Motor de IA intercambiable** (`src/engines/agent.ts` → `InterviewAgent`)
-  - Capa 1: Chrome Built-in AI (Gemini Nano, Prompt API). Local, gratis y privado.
-  - Capa 2: BYOK (OpenAI / Anthropic / Gemini) a través de `api/chat.ts`.
-- **Voz intercambiable** (`src/engines/voice.ts` → `VoiceEngine`)
-  - Capa 1: Web Speech API (`speechSynthesis`).
-  - Capa 2: OpenAI TTS / ElevenLabs a través de `api/tts.ts`.
-- **Dictado** opcional con `SpeechRecognition`. Ojo: en Chrome, ese audio lo procesan los servidores de Google.
-- **Bilingüe (español / inglés):** el idioma de la app (selector ES | EN, `src/i18n.ts`) es independiente del idioma de la entrevista.
-- **Modo agente** (`src/lib/interviewerTools.ts`): con modelos que soportan herramientas, el entrevistador toma notas con citas (`take_note`), revisa qué criterios le faltan y cuánto tiempo lleva (`review_notes`) y cuelga cuando termina (`end_interview`). El ciclo corre en el navegador; el proxy traduce el formato de herramientas de cada proveedor. Con modelos sin herramientas (p. ej. Chrome AI local) funciona en **modo básico**, y la app lo indica.
-- **Contexto entre sesiones**: al terminar se genera una evaluación (score, fortalezas, puntos a mejorar), y las próximas entrevistas reciben los últimos 3 resúmenes en el prompt.
+![Interview Bot: practice your behavioral interview with an AI interviewer that follows up](public/og-image.png)
 
-Los archivos de `api/` son Vercel Functions sin estado: no tienen `console.*` ni almacenamiento, y la key solo vive en memoria durante la petición. Están en un único archivo cada una a propósito, sin imports locales.
+**Try it:** [interview-bot-murex.vercel.app](https://interview-bot-murex.vercel.app)
 
-## Desarrollo
+## What it does
+
+- **Set up in one sentence.** _"Practice a behavioral interview at **Senior** level for **Software Engineer** in the style of **Amazon**, focused on **conflict**."_ Every highlighted word is a picker.
+- **A video call, not a chat.** The interviewer speaks (browser voice, OpenAI TTS or ElevenLabs) and you answer by voice or by typing. Live captions and a full transcript are on by default.
+- **An interviewer that acts like one.** With models that support tool use, it takes notes with your exact words, checks which criteria still lack evidence before choosing the next question, and hangs up when it's done. Models without tools run in a clearly labeled basic mode.
+- **Knows your background.** Upload your CV or your LinkedIn PDF and it asks about your real projects. Only a short summary is kept, never the file.
+- **Results you can act on.** A verdict on the committee's scale, scores on six criteria (STAR structure, specifics, ownership, impact, scope for your level, communication), the interviewer's notes with quotes, and one concrete exercise for next time. Your next interview presses on your weak spots.
+- **Bilingual and accessible.** The app runs in Spanish or English, and the interview language is set separately. It targets WCAG 2.2 AA: keyboard, screen readers, high-contrast mode and reduced motion.
+
+## Privacy model
+
+| What                                                 | Where it lives                                                                                                                                                                   |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profile, settings, history, API keys                 | Your browser's `localStorage`                                                                                                                                                    |
+| Requests to OpenAI / Anthropic / Gemini / OpenRouter | Sent through a stateless proxy that logs and stores nothing (it exists only because providers block browser calls)                                                               |
+| Multi-device sync (optional)                         | Encrypted end to end with your own Nostr key (NIP-44) and published to public relays, which see only ciphertext. API keys sync only if you turn it on, behind an extra password. |
+
+Chrome's built-in AI never leaves your device.
+
+## Run it locally
+
+Requirements: Node.js 22 or newer.
 
 ```bash
+git clone https://github.com/CrisTowi/interview-bot.git
+cd interview-bot
 npm install
-npm run dev      # http://localhost:5173 (sirve también /api, no hace falta Vercel CLI)
-npm run build
+npm run dev
 ```
 
-## Deploy gratis en Vercel
+Open http://localhost:5173. To get answers from the interviewer, either:
 
-1. Sube el repo a GitHub.
-2. En [vercel.com/new](https://vercel.com/new) importa el repo. Vercel detecta Vite solo y no hace falta configurar variables de entorno.
-3. Deploy. El plan Hobby (gratis) alcanza: el sitio es estático y las funciones solo se ejecutan cuando alguien usa una key propia.
+- **Use Chrome's built-in AI** (free, on device) in a recent desktop Chrome. If Settings says it's unavailable, turn on `chrome://flags/#prompt-api-for-gemini-nano` and restart Chrome.
+- **Or add a key** in Settings → AI engine: OpenAI, Anthropic, Gemini or OpenRouter (which also has free models).
 
-O desde la terminal: `npx vercel`.
+`npm run dev` also serves the `/api` proxy, so you don't need the Vercel CLI.
 
-## Chrome AI local
+## Deploy your own
 
-Requiere Chrome de escritorio reciente con Gemini Nano. Si no aparece disponible, activa `chrome://flags/#prompt-api-for-gemini-nano` y reinicia. El modelo (~2 GB) se descarga la primera vez.
+Import the repository at [vercel.com/new](https://vercel.com/new). Vercel detects Vite and needs no environment variables. The site is static and the proxy only runs when someone uses their own key, so it fits the free Hobby plan.
 
-## Roadmap
+## Contributing
 
-- [x] Fase 1: MVP local, UI de preferencias por capas, proxy serverless BYOK
-- [x] Fase 2: resumen al final de cada sesión, inyectado en las siguientes
-- [x] Fase 3: sync con Nostr (NIP-07 / NIP-44)
+Contributions are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, the test suites, coding standards and how pull requests are reviewed. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) explains how the pieces fit together.
 
-## Sincronización (Nostr)
+Found a security issue? See [SECURITY.md](SECURITY.md).
 
-Opcional, desde **Ajustes → Sincronizar entre dispositivos** (`src/sync/`):
+## License
 
-- **Identidad:** una extensión NIP-07 (Alby, nos2x…) o una clave creada/importada en el navegador (`nsec`).
-- **Datos:** perfil, ajustes e historial se cifran con NIP-44 hacia tu propia clave pública y se publican como un único evento reemplazable NIP-78 (kind `30078`, `d=interview-bot/state`) en `relay.damus.io`, `nos.lol` y `relay.primal.net`. Los relays solo ven texto cifrado.
-- **API keys:** no se sincronizan por defecto. Si lo activas, se cifran además con una frase de paso (PBKDF2 600k + AES-GCM, WebCrypto) antes del cifrado NIP-44, así que filtrar la `nsec` no basta para leerlas. La frase solo vive en memoria.
-- **Conflictos:** gana la copia editada más recientemente; el historial se une por id entre dispositivos.
-- `localStorage` sigue siendo la fuente local; los relays son el punto de encuentro entre dispositivos.
+[MIT](LICENSE). The accessibility review skill in `.claude/skills/accessibility/` comes from [addyosmani/web-quality-skills](https://github.com/addyosmani/web-quality-skills) (MIT).
