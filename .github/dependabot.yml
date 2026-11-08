@@ -7,6 +7,15 @@ updates:
     groups:
       dev-tooling:
         dependency-type: development
+    ignore:
+      # eslint-plugin-jsx-a11y only supports ESLint up to 9 (its peer range). Revisit when it supports 10.
+      - dependency-name: eslint
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@eslint/js'
+        update-types: ['version-update:semver-major']
+      # typescript-eslint requires TypeScript < 6.1 (TypeScript 7's native compiler has no compatible API yet).
+      - dependency-name: typescript
+        versions: ['>=6.1.0']
   - package-ecosystem: github-actions
     directory: /
     schedule:
