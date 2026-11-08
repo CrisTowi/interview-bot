@@ -36,7 +36,10 @@ const es = {
       Senior: '5+ años, lideras proyectos',
       Staff: 'Influyes en varios equipos',
     } as Record<Seniority, string>,
-    companyLabels: { Amazon: 'Amazon', Google: 'Google', Meta: 'Meta', Startup: 'una startup' } as Record<Company, string>,
+    companyLabels: { Amazon: 'Amazon', Google: 'Google', Meta: 'Meta', Startup: 'una startup' } as Record<
+      Company,
+      string
+    >,
     companyHints: {
       Amazon: 'Leadership Principles y mucho detalle',
       Google: 'Googleyness, colaboración y ambigüedad',
@@ -217,7 +220,8 @@ const es = {
     prepare: 'Preparar mi ficha',
     pastedSource: 'texto pegado',
     keepCurrent: 'Mantener mi ficha actual',
-    privacy: 'Tu archivo se lee en tu navegador y nunca se sube. Su texto se envía al motor de IA que elegiste para resumirlo.',
+    privacy:
+      'Tu archivo se lee en tu navegador y nunca se sube. Su texto se envía al motor de IA que elegiste para resumirlo.',
     notes: 'Notas para el entrevistador',
     notesPlaceholder: 'Ej.: busco mi primer rol de Staff; quiero practicar historias de conflicto con producto.',
     salary: 'Expectativa salarial (opcional)',
@@ -430,7 +434,8 @@ const en: Dict = {
       available: 'Ready. It runs on your device; nothing leaves your browser.',
       downloadable: 'The model (~2 GB) will download when you start your first interview.',
       downloading: 'Downloading the model…',
-      unavailable: 'Not available here. Turn on chrome://flags/#prompt-api-for-gemini-nano or pick a provider with an API key.',
+      unavailable:
+        'Not available here. Turn on chrome://flags/#prompt-api-for-gemini-nano or pick a provider with an API key.',
     },
     engineSummaryLocal: 'Chrome AI on your device (free)',
     engineSummaryLocalUnavailable: "Chrome AI isn't available here",
@@ -446,7 +451,7 @@ const en: Dict = {
     interviewerVoice: "Interviewer's voice",
     voiceKey: 'Voice API key',
     voice: 'Voice',
-    openaiVoicePlaceholder: "Automatic, matching the interviewer (or: nova, onyx…)",
+    openaiVoicePlaceholder: 'Automatic, matching the interviewer (or: nova, onyx…)',
     voiceId: 'Automatic, matching the interviewer (or a Voice ID)',
     interviewLang: 'Interview language',
     agentChecking: 'Checking whether the model can use tools…',
@@ -553,7 +558,8 @@ const en: Dict = {
     prepare: 'Prepare my briefing',
     pastedSource: 'pasted text',
     keepCurrent: 'Keep my current briefing',
-    privacy: 'Your file is read in your browser and never uploaded. Its text goes to the AI engine you chose to summarize it.',
+    privacy:
+      'Your file is read in your browser and never uploaded. Its text goes to the AI engine you chose to summarize it.',
     notes: 'Notes for the interviewer',
     notesPlaceholder: "E.g.: I'm aiming for my first Staff role; I want to practice conflict stories with product.",
     salary: 'Salary expectation (optional)',
@@ -610,17 +616,27 @@ const en: Dict = {
     endTitle: 'End the interview',
     hintMic:
       'Press Answer, speak, and press Finish answer when you are done. Structure your answer: situation, task, action and result.',
-    hintNoMic: "Your browser doesn't support dictation: answer by typing. Structure your answer: situation, task, action and result.",
+    hintNoMic:
+      "Your browser doesn't support dictation: answer by typing. Structure your answer: situation, task, action and result.",
     voiceError: (message) => `Couldn't play the voice: ${message}`,
     localUnavailable: "Chrome Built-in AI isn't available in this browser.",
   },
   summary: {
     verdicts: {
-      'no hire': { label: 'No hire', meaning: "Based on this interview, the committee wouldn't move forward with you." },
+      'no hire': {
+        label: 'No hire',
+        meaning: "Based on this interview, the committee wouldn't move forward with you.",
+      },
       'lean no hire': { label: 'Lean no hire', meaning: 'There were good signals, but not enough to pass the round.' },
-      'lean hire': { label: 'Lean hire', meaning: "You'd pass the round, with doubts the committee would want to clear up." },
+      'lean hire': {
+        label: 'Lean hire',
+        meaning: "You'd pass the round, with doubts the committee would want to clear up.",
+      },
       hire: { label: 'Hire', meaning: 'A solid interview: the committee would move forward with you.' },
-      'strong hire': { label: 'Strong hire', meaning: "You stood out: you'd be among the best candidates in the round." },
+      'strong hire': {
+        label: 'Strong hire',
+        meaning: "You stood out: you'd be among the best candidates in the round.",
+      },
     },
     dimensions: {
       structure: 'STAR structure',

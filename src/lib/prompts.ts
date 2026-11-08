@@ -1,4 +1,14 @@
-import type { ChatMessage, Company, Dimension, Evaluation, Focus, InterviewNote, Lang, Profile, SessionSummary } from '../types';
+import type {
+  ChatMessage,
+  Company,
+  Dimension,
+  Evaluation,
+  Focus,
+  InterviewNote,
+  Lang,
+  Profile,
+  SessionSummary,
+} from '../types';
 
 const LANGUAGE: Record<Lang, string> = { es: 'Spanish', en: 'English' };
 
@@ -92,7 +102,9 @@ export function kickoffMessage(lang: Lang): ChatMessage {
 export const DIMENSIONS: Dimension[] = ['structure', 'specificity', 'ownership', 'impact', 'scope', 'communication'];
 
 export function buildSummaryPrompt(p: Profile, notes: InterviewNote[] = []): string {
-  const noteLines = notes.map((n) => `- min ${n.minute} [${n.dimension}, ${n.signal}] ${n.observation}${n.quote ? ` ("${n.quote}")` : ''}`);
+  const noteLines = notes.map(
+    (n) => `- min ${n.minute} [${n.dimension}, ${n.signal}] ${n.observation}${n.quote ? ` ("${n.quote}")` : ''}`,
+  );
   return `You are a member of a ${p.company} hiring committee. Evaluate the candidate in the following behavioral interview for a ${p.seniority} ${p.role} position.
 ${notes.length ? `The interviewer took these notes during the call; use them as evidence alongside the transcript:\n${noteLines.join('\n')}\n` : ''}${p.cvSummary?.trim() ? `Candidate's background (from their CV), to judge whether their stories match their level:\n${p.cvSummary.trim()}\n` : ''}Be honest and specific: quote or paraphrase what the candidate actually said. Address the candidate directly as "you".
 Reply ONLY with a JSON object, no other text. Write all text fields in ${LANGUAGE[p.lang]}. Shape:

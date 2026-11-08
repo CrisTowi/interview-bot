@@ -17,6 +17,7 @@ import { createVoice, type VoiceEngine } from '../engines/voice';
 import { capitalize, useT } from '../i18n';
 import { createInterviewerTools } from '../lib/interviewerTools';
 import { buildSystemPrompt, kickoffMessage } from '../lib/prompts';
+import { focusOnMount } from '../components/ui';
 import { APP_NAME, useDocumentTitle } from '../lib/title';
 import { useApp } from '../store';
 import type { ChatMessage, InterviewNote } from '../types';
@@ -108,6 +109,8 @@ export function Interview({ onEnd }: { onEnd: (result: InterviewResult) => void 
       agent.current?.destroy();
       voice.current?.stop();
     };
+    // One interview per mount: casting, the prompt and the agent are frozen for the whole call.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -115,6 +118,8 @@ export function Interview({ onEnd }: { onEnd: (result: InterviewResult) => void 
       sendWhenMicStops.current = false;
       send();
     }
+    // Only the mic turning off matters here; send() reads the latest input when it runs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mic.listening]);
 
   useEffect(() => {
@@ -331,7 +336,7 @@ export function Interview({ onEnd }: { onEnd: (result: InterviewResult) => void 
       {keyboard && (
         <div className="composer-box call-composer">
           <textarea
-            autoFocus
+            ref={focusOnMount}
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
@@ -408,7 +413,7 @@ export function Interview({ onEnd }: { onEnd: (result: InterviewResult) => void 
             {muted ? <MutedIcon /> : <VolumeIcon />}
           </button>
         </div>
-        <button className="control hangup" onClick={end} title={t.interview.endTitle}>
+        <button className="control hangup" onClick={end} title={t.interview.endTitle} aria-label={t.interview.endTitle}>
           <HangUpIcon />
           <span>{t.interview.end}</span>
         </button>

@@ -91,6 +91,8 @@ export function Summary({ existing, result: interview, onHome, onRetry }: Props)
 
   useEffect(() => {
     if (!existing && answered) evaluate();
+    // Evaluate once, when the screen opens with a fresh interview.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!summary) {

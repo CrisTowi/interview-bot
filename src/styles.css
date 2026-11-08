@@ -574,7 +574,9 @@ textarea:focus,
   transition: box-shadow 200ms ease;
 }
 .tile-main.speaking .avatar {
-  box-shadow: 0 0 0 4px var(--call-live), 0 0 40px 6px color-mix(in srgb, var(--call-live) 35%, transparent);
+  box-shadow:
+    0 0 0 4px var(--call-live),
+    0 0 40px 6px color-mix(in srgb, var(--call-live) 35%, transparent);
   animation: talk 1.6s ease-in-out infinite;
 }
 .silhouette {
@@ -1061,7 +1063,11 @@ textarea:focus,
   font-size: 0.9rem;
 }
 code {
-  font: 0.8rem ui-monospace, 'SF Mono', Menlo, monospace;
+  font:
+    0.8rem ui-monospace,
+    'SF Mono',
+    Menlo,
+    monospace;
 }
 .secret {
   display: block;

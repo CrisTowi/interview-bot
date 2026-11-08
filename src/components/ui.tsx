@@ -74,6 +74,14 @@ export function useToolSupport(): boolean | null {
     return () => {
       current = false;
     };
+    // Only these fields change the answer; re-checking on every settings edit (e.g. typing a key) would flicker.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.llm, settings.cloud.provider, settings.cloud.model]);
   return supported;
 }
+
+/**
+ * Moves focus to a field the user just opened (search box, text area). Stable identity, so React calls it
+ * only when the element mounts — unlike an inline arrow, which would refocus on every render.
+ */
+export const focusOnMount = (el: HTMLElement | null) => el?.focus();
