@@ -24,6 +24,22 @@ test('a picker works with the keyboard and the choice persists after reload', as
   await expect(page.getByRole('button', { name: 'Nivel: Staff' })).toBeVisible();
 });
 
+test('the length stays out of the sentence unless you ask for a shorter interview', async ({ page }) => {
+  await expect(page.getByRole('button', { name: /^Duración/ })).toHaveCount(0);
+  await page.getByRole('button', { name: '¿Poco tiempo? Haz una versión corta' }).click();
+  // The picker appears already open, on the 20-minute option.
+  await expect(page.getByRole('listbox', { name: 'Duración' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: 'Duración: 20 minutos' })).toBeFocused();
+  await expect(page.getByRole('button', { name: /Poco tiempo/ })).toHaveCount(0);
+
+  await page.reload();
+  await page.getByRole('button', { name: 'Duración: 20 minutos' }).click();
+  await page.getByRole('option', { name: /30 minutos/ }).click();
+  await expect(page.getByRole('button', { name: /^Duración/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '¿Poco tiempo? Haz una versión corta' })).toBeFocused();
+});
+
 test('the interview cannot start without a role', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Puesto' }).fill('');
   await expect(page.getByRole('button', { name: 'Empezar entrevista' })).toBeDisabled();

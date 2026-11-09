@@ -66,16 +66,16 @@ const es = {
     durationLabels: {
       quick: '10 minutos',
       standard: '20 minutos',
-      full: '30 minutos',
+      full: '30 minutos (completa)',
     } as Record<Duration, string>,
     durationHints: {
       quick: '2 preguntas, para cuando tienes poco tiempo',
       standard: '3 preguntas con su seguimiento',
-      full: '5 preguntas, lo que dura una ronda real',
+      full: '5 preguntas, lo que dura una ronda real. Es la opción por defecto',
     } as Record<Duration, string>,
   },
   home: {
-    /** The text around the pickers: before level, level→role, role→company, company→focus, focus→length, after. */
+    /** The text around the pickers: before level, level→role, role→company, company→focus, focus→length (only for a short interview), after. */
     sentence: ['Practica una entrevista behavioral de nivel', 'para', 'al estilo de', ', sobre', ', de', '.'],
     level: 'Nivel',
     role: 'Puesto',
@@ -83,6 +83,7 @@ const es = {
     company: 'Empresa',
     focus: 'Enfoque',
     duration: 'Duración',
+    shortOnTime: '¿Poco tiempo? Haz una versión corta',
     start: 'Empezar entrevista',
     chooseEngine: 'Elegir motor de IA',
     change: 'Cambiar',
@@ -422,12 +423,12 @@ const en: Dict = {
     durationLabels: {
       quick: '10 minutes',
       standard: '20 minutes',
-      full: '30 minutes',
+      full: '30 minutes (full)',
     },
     durationHints: {
       quick: '2 questions, for when you are short on time',
       standard: '3 questions with their follow-ups',
-      full: '5 questions, as long as a real round',
+      full: '5 questions, as long as a real round. The default',
     },
   },
   home: {
@@ -438,6 +439,7 @@ const en: Dict = {
     company: 'Company',
     focus: 'Focus',
     duration: 'Length',
+    shortOnTime: 'Short on time? Do a shorter one',
     start: 'Start interview',
     chooseEngine: 'Choose an AI engine',
     change: 'Change',

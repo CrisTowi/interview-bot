@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { InlinePicker, type PickerOption } from '../components/InlinePicker';
 import { ScoreBadge, useEngineReady } from '../components/ui';
 import { capitalize, useT } from '../i18n';
@@ -23,6 +24,16 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
   const t = useT();
   const checking = settings.llm === 'local' && localStatus === 'checking';
   useDocumentTitle(`${APP_NAME} — ${t.title.home}`);
+  // The full interview is the default and goes unsaid; a shorter one shows up in the sentence.
+  const short = profile.duration && profile.duration !== 'full';
+  const [lengthJustAdded, setLengthJustAdded] = useState(false);
+  const shortLink = useRef<HTMLButtonElement>(null);
+  const wasShort = useRef(short);
+  useEffect(() => {
+    // Back to the full length: the picker disappears, so hand focus back to the link that adds it.
+    if (wasShort.current && !short) shortLink.current?.focus();
+    wasShort.current = short;
+  }, [short]);
 
   const { seniorityHints, companyLabels, companyHints, focusLabels, focusHints, durationLabels, durationHints } =
     t.options;
@@ -95,13 +106,18 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
           options={focusOptions}
           onChange={(focus) => setProfile({ focus })}
         />
-        {focusToDuration}{' '}
-        <InlinePicker
-          label={t.home.duration}
-          value={profile.duration}
-          options={durationOptions}
-          onChange={(duration) => setProfile({ duration })}
-        />
+        {short && (
+          <>
+            {focusToDuration}{' '}
+            <InlinePicker
+              label={t.home.duration}
+              value={profile.duration}
+              options={durationOptions}
+              onChange={(duration) => setProfile({ duration })}
+              openOnMount={lengthJustAdded}
+            />
+          </>
+        )}
         {after}
       </p>
 
@@ -121,6 +137,18 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
           </button>
         </p>
       </div>
+      {!short && (
+        <button
+          ref={shortLink}
+          className="link muted-link short-link"
+          onClick={() => {
+            setLengthJustAdded(true);
+            setProfile({ duration: 'standard' });
+          }}
+        >
+          {t.home.shortOnTime}
+        </button>
+      )}
 
       {history.length > 0 && (
         <section className="history">

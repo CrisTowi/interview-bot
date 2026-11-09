@@ -14,11 +14,14 @@ export function InlinePicker<T extends string>({
   options,
   onChange,
   label,
+  openOnMount = false,
 }: {
   value: T;
   options: readonly PickerOption<T>[];
   onChange: (value: T) => void;
   label: string;
+  /** Open the list as soon as it appears, for a picker revealed by another control. */
+  openOnMount?: boolean;
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -50,6 +53,12 @@ export function InlinePicker<T extends string>({
     onChange(options[index].value);
     close();
   }
+
+  useEffect(() => {
+    if (openOnMount) show();
+    // Only on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!open) return;

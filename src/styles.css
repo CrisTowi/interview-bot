@@ -376,6 +376,15 @@ textarea:focus,
   gap: 16px;
   flex-wrap: wrap;
 }
+/* Quiet on purpose: the full interview is the default; this only matters when you're short on time. */
+.short-link {
+  align-self: flex-start;
+  /* Sits close under the start row rather than a full .home gap away. */
+  margin-top: -20px;
+  min-height: 24px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
 .status {
   margin: 0;
   color: var(--muted);
