@@ -5,6 +5,7 @@ import {
   buildSystemPrompt,
   kickoffMessage,
   parseEvaluation,
+  plannedDuration,
   timeCheck,
   transcriptText,
 } from './prompts';
@@ -51,10 +52,17 @@ describe('buildSystemPrompt', () => {
     expect(full).toContain('about 30 minutes or 5 main questions');
     expect(full).not.toContain('Time is short');
 
-    const quick = buildSystemPrompt({ ...profile, duration: 'quick' }, [], 'Laura', 'female', true);
+    const quick = buildSystemPrompt({ ...profile, duration: 'quick', chooseLength: true }, [], 'Laura', 'female', true);
     expect(quick).toContain('lasts about 10 minutes: cover about 2 main questions');
     expect(quick).toContain('about 10 minutes or 2 main questions');
     expect(quick).toContain('Time is short');
+  });
+
+  it('ignores the chosen length while the length switch is off', () => {
+    expect(plannedDuration({ duration: 'quick', chooseLength: false })).toBe('full');
+    expect(plannedDuration({ duration: 'quick' })).toBe('full');
+    expect(plannedDuration({ duration: 'quick', chooseLength: true })).toBe('quick');
+    expect(buildSystemPrompt({ ...profile, duration: 'quick' }, [], 'Laura', null)).toContain('lasts about 30 minutes');
   });
 
   it('falls back to the full length for a profile saved before lengths existed', () => {

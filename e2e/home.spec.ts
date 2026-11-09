@@ -24,20 +24,28 @@ test('a picker works with the keyboard and the choice persists after reload', as
   await expect(page.getByRole('button', { name: 'Nivel: Staff' })).toBeVisible();
 });
 
-test('the length stays out of the sentence unless you ask for a shorter interview', async ({ page }) => {
+test('the length stays out of the sentence until the length switch is on', async ({ page }) => {
+  const lengthSwitch = page.getByRole('switch', { name: 'Elegir duración' });
+  await expect(lengthSwitch).toHaveAttribute('aria-checked', 'false');
   await expect(page.getByRole('button', { name: /^Duración/ })).toHaveCount(0);
-  await page.getByRole('button', { name: '¿Poco tiempo? Haz una versión corta' }).click();
-  // The picker appears already open, on the 20-minute option.
-  await expect(page.getByRole('listbox', { name: 'Duración' })).toBeFocused();
-  await page.keyboard.press('Escape');
-  await expect(page.getByRole('button', { name: 'Duración: 20 minutos' })).toBeFocused();
-  await expect(page.getByRole('button', { name: /Poco tiempo/ })).toHaveCount(0);
 
-  await page.reload();
+  await lengthSwitch.click();
+  // The picker appears already open, so the length can be chosen right away.
+  await expect(page.getByRole('listbox', { name: 'Duración' })).toBeFocused();
+  await page.getByRole('option', { name: /20 minutos/ }).click();
+  await expect(page.getByRole('button', { name: 'Duración: 20 minutos' })).toBeFocused();
+
+  // Choosing 30 minutes keeps the length in the sentence; only the switch removes it.
   await page.getByRole('button', { name: 'Duración: 20 minutos' }).click();
   await page.getByRole('option', { name: /30 minutos/ }).click();
+  await expect(page.getByRole('button', { name: 'Duración: 30 minutos' })).toBeVisible();
+
+  await page.reload();
+  await expect(lengthSwitch).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('button', { name: 'Duración: 30 minutos' })).toBeVisible();
+  await lengthSwitch.click();
   await expect(page.getByRole('button', { name: /^Duración/ })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: '¿Poco tiempo? Haz una versión corta' })).toBeFocused();
+  await expect(lengthSwitch).toBeFocused();
 });
 
 test('the interview cannot start without a role', async ({ page }) => {

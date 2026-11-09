@@ -10,7 +10,10 @@ export interface Profile {
   seniority: Seniority;
   company: Company;
   focus: Focus;
+  /** Only applies with `chooseLength` on; otherwise the interview is the full length. */
   duration: Duration;
+  /** The length switch on Home. Missing on profiles saved before it existed. */
+  chooseLength?: boolean;
   /** Free-form notes the interviewer can draw on (years, domain, team size…). */
   background: string;
   /** Briefing distilled from the candidate's CV or LinkedIn PDF (the file itself is never stored). */

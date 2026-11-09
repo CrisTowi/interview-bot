@@ -20,6 +20,11 @@ export const DURATIONS: Record<Duration, { minutes: number; questions: number }>
   full: { minutes: 30, questions: 5 },
 };
 
+/** The length this interview runs: the chosen one only while the length switch is on. */
+export function plannedDuration(p: Pick<Profile, 'duration' | 'chooseLength'>): Duration {
+  return p.chooseLength && p.duration in DURATIONS ? p.duration : 'full';
+}
+
 /**
  * A note for the model about the clock, attached to the candidate's answer as it nears and passes the
  * planned length. Basic-mode models have no other way to know the time. Returns the stage reached, so
@@ -76,7 +81,7 @@ export function buildSystemPrompt(
   /** Agent mode: the model can call take_note, review_notes and end_interview. */
   withTools = false,
 ): string {
-  const { minutes, questions } = DURATIONS[p.duration] ?? DURATIONS.full;
+  const { minutes, questions } = DURATIONS[plannedDuration(p)];
   const lines: (string | null)[] = [
     `You are ${interviewerName}, a senior interviewer at ${p.company}, running a realistic behavioral interview for a ${p.seniority} ${p.role} position over a video call.`,
     // Spanish adjectives agree with the speaker ("encantada"/"encantado"), so the persona must know it.

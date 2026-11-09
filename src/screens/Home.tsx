@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { InlinePicker, type PickerOption } from '../components/InlinePicker';
 import { ScoreBadge, useEngineReady } from '../components/ui';
 import { capitalize, useT } from '../i18n';
@@ -24,16 +24,9 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
   const t = useT();
   const checking = settings.llm === 'local' && localStatus === 'checking';
   useDocumentTitle(`${APP_NAME} — ${t.title.home}`);
-  // The full interview is the default and goes unsaid; a shorter one shows up in the sentence.
-  const short = profile.duration && profile.duration !== 'full';
+  // The full interview is the default and goes unsaid; the switch adds the length to the sentence.
+  const chooseLength = !!profile.chooseLength;
   const [lengthJustAdded, setLengthJustAdded] = useState(false);
-  const shortLink = useRef<HTMLButtonElement>(null);
-  const wasShort = useRef(short);
-  useEffect(() => {
-    // Back to the full length: the picker disappears, so hand focus back to the link that adds it.
-    if (wasShort.current && !short) shortLink.current?.focus();
-    wasShort.current = short;
-  }, [short]);
 
   const { seniorityHints, companyLabels, companyHints, focusLabels, focusHints, durationLabels, durationHints } =
     t.options;
@@ -106,7 +99,7 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
           options={focusOptions}
           onChange={(focus) => setProfile({ focus })}
         />
-        {short && (
+        {chooseLength && (
           <>
             {focusToDuration}{' '}
             <InlinePicker
@@ -137,18 +130,21 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
           </button>
         </p>
       </div>
-      {!short && (
-        <button
-          ref={shortLink}
-          className="link muted-link short-link"
-          onClick={() => {
-            setLengthJustAdded(true);
-            setProfile({ duration: 'standard' });
-          }}
-        >
-          {t.home.shortOnTime}
-        </button>
-      )}
+      <button
+        type="button"
+        role="switch"
+        aria-checked={chooseLength}
+        className="switch length-switch"
+        onClick={() => {
+          setLengthJustAdded(!chooseLength);
+          setProfile({ chooseLength: !chooseLength });
+        }}
+      >
+        <span className="switch-track" aria-hidden="true">
+          <span className="switch-thumb" />
+        </span>
+        {t.home.chooseLength}
+      </button>
 
       {history.length > 0 && (
         <section className="history">

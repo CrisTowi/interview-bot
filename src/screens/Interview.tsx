@@ -16,7 +16,7 @@ import { useSpeechInput } from '../engines/speechInput';
 import { createVoice, type VoiceEngine } from '../engines/voice';
 import { capitalize, useT } from '../i18n';
 import { createInterviewerTools } from '../lib/interviewerTools';
-import { buildSystemPrompt, DURATIONS, kickoffMessage, timeCheck } from '../lib/prompts';
+import { buildSystemPrompt, DURATIONS, kickoffMessage, plannedDuration, timeCheck } from '../lib/prompts';
 import { focusOnMount } from '../components/ui';
 import { APP_NAME, useDocumentTitle } from '../lib/title';
 import { useApp } from '../store';
@@ -78,7 +78,8 @@ export function Interview({ onEnd }: { onEnd: (result: InterviewResult) => void 
   const [download, setDownload] = useState<number | null>(null);
   const [startedAt] = useState(() => Date.now());
   const elapsed = useElapsedSeconds(startedAt);
-  const planned = (DURATIONS[profile.duration] ?? DURATIONS.full).minutes;
+  const duration = plannedDuration(profile);
+  const planned = DURATIONS[duration].minutes;
   /** Which time check the model has already received (see timeCheck in lib/prompts.ts). */
   const timeStage = useRef<0 | 1 | 2>(0);
   const t = useT();
@@ -184,7 +185,7 @@ export function Interview({ onEnd }: { onEnd: (result: InterviewResult) => void 
     if (!text || thinking) return;
     voice.current?.stop();
     setInput('');
-    const check = timeCheck((Date.now() - startedAt) / 60_000, profile.duration ?? 'full', timeStage.current);
+    const check = timeCheck((Date.now() - startedAt) / 60_000, duration, timeStage.current);
     if (check) timeStage.current = check.stage;
     advance([...messages, { role: 'user', content: text, context: check?.note }]);
   }

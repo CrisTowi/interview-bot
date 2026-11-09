@@ -66,16 +66,16 @@ const es = {
     durationLabels: {
       quick: '10 minutos',
       standard: '20 minutos',
-      full: '30 minutos (completa)',
+      full: '30 minutos',
     } as Record<Duration, string>,
     durationHints: {
       quick: '2 preguntas, para cuando tienes poco tiempo',
       standard: '3 preguntas con su seguimiento',
-      full: '5 preguntas, lo que dura una ronda real. Es la opción por defecto',
+      full: '5 preguntas: la entrevista completa, como una ronda real',
     } as Record<Duration, string>,
   },
   home: {
-    /** The text around the pickers: before level, level→role, role→company, company→focus, focus→length (only for a short interview), after. */
+    /** The text around the pickers: before level, level→role, role→company, company→focus, focus→length (only with the length switch on), after. */
     sentence: ['Practica una entrevista behavioral de nivel', 'para', 'al estilo de', ', sobre', ', de', '.'],
     level: 'Nivel',
     role: 'Puesto',
@@ -83,7 +83,7 @@ const es = {
     company: 'Empresa',
     focus: 'Enfoque',
     duration: 'Duración',
-    shortOnTime: '¿Poco tiempo? Haz una versión corta',
+    chooseLength: 'Elegir duración',
     start: 'Empezar entrevista',
     chooseEngine: 'Elegir motor de IA',
     change: 'Cambiar',
@@ -423,12 +423,12 @@ const en: Dict = {
     durationLabels: {
       quick: '10 minutes',
       standard: '20 minutes',
-      full: '30 minutes (full)',
+      full: '30 minutes',
     },
     durationHints: {
       quick: '2 questions, for when you are short on time',
       standard: '3 questions with their follow-ups',
-      full: '5 questions, as long as a real round. The default',
+      full: '5 questions: the full interview, like a real round',
     },
   },
   home: {
@@ -439,7 +439,7 @@ const en: Dict = {
     company: 'Company',
     focus: 'Focus',
     duration: 'Length',
-    shortOnTime: 'Short on time? Do a shorter one',
+    chooseLength: 'Choose length',
     start: 'Start interview',
     chooseEngine: 'Choose an AI engine',
     change: 'Change',

@@ -38,6 +38,7 @@ const defaultProfile: Profile = {
   company: 'Amazon',
   focus: 'mixed',
   duration: 'full',
+  chooseLength: false,
   background: '',
   cvSummary: '',
   salary: '',
