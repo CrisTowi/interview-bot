@@ -42,10 +42,10 @@ Interview Bot is a static single-page app plus a stateless proxy. All user state
 
 ## How an interview runs
 
-1. **Setup.** `Home` edits `profile` in the store (level, role, company style, focus, interview language, CV briefing).
+1. **Setup.** `Home` edits `profile` in the store (level, role, company style, focus, length, interview language, CV briefing).
 2. **Casting.** `castInterviewer` looks at the available voices first and picks a name of the same gender (premium voices are chosen from the name instead). In parallel, `supportsTools` decides between agent and basic mode.
-3. **Prompt.** `buildSystemPrompt` combines company style, focus, CV briefing, level, conversation rules, the tools section (agent mode only) and the last three evaluations. It's frozen for the call.
-4. **Turns.** Each answer goes to `InterviewAgent.reply`. In agent mode, `CloudAgent` loops: send the conversation and tool definitions, run any tool calls (`take_note`, `review_notes`, `end_interview`), send the results back, and stop when the model answers without calls, a tool ends the turn, or after 6 steps. The reply is spoken by the `VoiceEngine` and shown as captions.
+3. **Prompt.** `buildSystemPrompt` combines company style, focus, CV briefing, level, conversation rules, the planned length (`DURATIONS`: minutes and number of main questions), the tools section (agent mode only) and the last three evaluations. It's frozen for the call.
+4. **Turns.** Each answer goes to `InterviewAgent.reply`. In agent mode, `CloudAgent` loops: send the conversation and tool definitions, run any tool calls (`take_note`, `review_notes`, `end_interview`), send the results back, and stop when the model answers without calls, a tool ends the turn, or after 6 steps. The reply is spoken by the `VoiceEngine` and shown as captions. The call shows the clock against the planned length; at 75% and 100% of it, `timeCheck` attaches a note to the candidate's answer (in the message's `context`, never shown or evaluated) so the interviewer wraps up on time, in both modes.
 5. **Hang-up.** The user ends the call, or the interviewer calls `end_interview` and the app leaves once the goodbye has been spoken.
 6. **Evaluation.** `buildSummaryPrompt` sends the transcript plus the interviewer's notes. `parseEvaluation` reads the JSON leniently (verdict, score, six 1–5 criteria, strengths, gaps, next step), and the result is saved to `history`.
 

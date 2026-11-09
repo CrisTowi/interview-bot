@@ -5,7 +5,13 @@ import { createInterviewerTools } from './interviewerTools';
 function setup(minutesAgo = 0) {
   const notes: InterviewNote[] = [];
   const onEnd = vi.fn();
-  const tools = createInterviewerTools({ lang: 'es', notes, startedAt: Date.now() - minutesAgo * 60_000, onEnd });
+  const tools = createInterviewerTools({
+    lang: 'es',
+    notes,
+    startedAt: Date.now() - minutesAgo * 60_000,
+    minutes: 20,
+    onEnd,
+  });
   const byName = (name: string) => tools.find((t) => t.name === name)!;
   return { notes, onEnd, takeNote: byName('take_note'), review: byName('review_notes'), end: byName('end_interview') };
 }
@@ -44,10 +50,14 @@ describe('take_note', () => {
 });
 
 describe('review_notes', () => {
-  it('reports elapsed time and that there are no notes yet', () => {
+  it('never reports negative time left once the planned length has passed', () => {
+    expect(setup(25).review.run({})).toContain('Elapsed: 25 of about 20 min (0 left).');
+  });
+
+  it('reports elapsed and remaining time against the planned length, and that there are no notes yet', () => {
     const { review } = setup(12);
     const text = review.run({});
-    expect(text).toContain('Elapsed: 12 min');
+    expect(text).toContain('Elapsed: 12 of about 20 min (8 left).');
     expect(text).toContain('No notes yet.');
     expect(text).toContain('No evidence yet for: structure, specificity, ownership, impact, scope, communication.');
   });

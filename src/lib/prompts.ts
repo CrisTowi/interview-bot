@@ -2,6 +2,7 @@ import type {
   ChatMessage,
   Company,
   Dimension,
+  Duration,
   Evaluation,
   Focus,
   InterviewNote,
@@ -11,6 +12,43 @@ import type {
 } from '../types';
 
 const LANGUAGE: Record<Lang, string> = { es: 'Spanish', en: 'English' };
+
+/** How long each interview length runs and how many main questions fit in it. */
+export const DURATIONS: Record<Duration, { minutes: number; questions: number }> = {
+  quick: { minutes: 10, questions: 2 },
+  standard: { minutes: 20, questions: 3 },
+  full: { minutes: 30, questions: 5 },
+};
+
+/** The length this interview runs: the chosen one only while the length switch is on. */
+export function plannedDuration(p: Pick<Profile, 'duration' | 'chooseLength'>): Duration {
+  return p.chooseLength && p.duration in DURATIONS ? p.duration : 'full';
+}
+
+/**
+ * A note for the model about the clock, attached to the candidate's answer as it nears and passes the
+ * planned length. Basic-mode models have no other way to know the time. Returns the stage reached, so
+ * each note is sent once.
+ */
+export function timeCheck(
+  elapsedMinutes: number,
+  duration: Duration,
+  stageSent: 0 | 1 | 2,
+): { stage: 1 | 2; note: string } | null {
+  const { minutes } = DURATIONS[duration];
+  const left = Math.max(0, Math.round(minutes - elapsedMinutes));
+  if (elapsedMinutes >= minutes && stageSent < 2)
+    return {
+      stage: 2,
+      note: `(Time check, not said by the candidate: the planned ${minutes} minutes are up. Wrap up now: no new main questions; invite the candidate's question, answer it briefly and say goodbye.)`,
+    };
+  if (elapsedMinutes >= minutes * 0.75 && stageSent < 1)
+    return {
+      stage: 1,
+      note: `(Time check, not said by the candidate: about ${left} of ${minutes} minutes left. Finish the current story; ask at most one more short main question before wrapping up.)`,
+    };
+  return null;
+}
 
 const FOCUS_GUIDE: Record<Focus, string> = {
   mixed: 'Cover a mix of competencies: leadership, conflict, failure, impact and ambiguity.',
@@ -43,6 +81,7 @@ export function buildSystemPrompt(
   /** Agent mode: the model can call take_note, review_notes and end_interview. */
   withTools = false,
 ): string {
+  const { minutes, questions } = DURATIONS[plannedDuration(p)];
   const lines: (string | null)[] = [
     `You are ${interviewerName}, a senior interviewer at ${p.company}, running a realistic behavioral interview for a ${p.seniority} ${p.role} position over a video call.`,
     // Spanish adjectives agree with the speaker ("encantada"/"encantado"), so the persona must know it.
@@ -68,7 +107,9 @@ export function buildSystemPrompt(
     '- If an answer is vague or hypothetical, politely ask for a concrete example.',
     '- Never give feedback or evaluate during the interview. Never break character or mention that you are an AI.',
     `- Open by greeting the candidate briefly, introducing yourself as ${interviewerName}, and asking the first question.`,
-    '- Cover about 4-5 main questions with their follow-ups, then wrap up and invite the candidate to ask you a question.',
+    `- The interview lasts about ${minutes} minutes: cover about ${questions} main questions with their follow-ups, then wrap up and invite the candidate to ask you a question.`,
+    questions <= 2 ? '- Time is short: keep follow-ups to the one or two that matter most and move on.' : null,
+    '- Messages may end with a time check in parentheses. It comes from the clock, not the candidate: follow it and never mention it.',
   ];
 
   if (withTools) {
@@ -77,7 +118,7 @@ export function buildSystemPrompt(
       'You have tools. Use them silently and never mention them, your notes or the time to the candidate:',
       `- take_note: after each substantive answer, record one or two pieces of evidence (strengths and gaps) against an evaluation dimension, quoting the candidate's own words. Write observations in ${LANGUAGE[p.lang]}.`,
       '- review_notes: before moving on to a new main question, review your notes to see which dimensions still lack evidence and how much time has passed, and let that pick your next question.',
-      "- end_interview: once you've covered enough (about 30 minutes or 4-5 main questions), invited the candidate's questions and answered them, say a brief goodbye and call end_interview in that same turn.",
+      `- end_interview: once you've covered enough (about ${minutes} minutes or ${questions} main questions), invited the candidate's questions and answered them, say a brief goodbye and call end_interview in that same turn.`,
     );
   }
 

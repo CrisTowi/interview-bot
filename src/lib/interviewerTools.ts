@@ -9,6 +9,8 @@ interface Options {
   /** Notes live here for the whole call; the evaluation and the results screen read them afterwards. */
   notes: InterviewNote[];
   startedAt: number;
+  /** Planned length, so review_notes can say how much time is left. */
+  minutes: number;
   onEnd: () => void;
 }
 
@@ -18,7 +20,7 @@ const minutesSince = (start: number) => Math.max(0, Math.round((Date.now() - sta
  * The interviewer's tools. take_note acts, review_notes lets it observe (what's missing, how long it's been)
  * and decide the next question, and end_interview lets it hang up. All run in the browser.
  */
-export function createInterviewerTools({ lang, notes, startedAt, onEnd }: Options): AgentTool[] {
+export function createInterviewerTools({ lang, notes, startedAt, minutes, onEnd }: Options): AgentTool[] {
   return [
     {
       name: 'take_note',
@@ -69,7 +71,7 @@ export function createInterviewerTools({ lang, notes, startedAt, onEnd }: Option
           (n) => `- [${n.dimension}, ${n.signal}] ${n.observation}${n.quote ? ` ("${n.quote}")` : ''}`,
         );
         return [
-          `Elapsed: ${minutesSince(startedAt)} min (aim for about 30).`,
+          `Elapsed: ${minutesSince(startedAt)} of about ${minutes} min (${Math.max(0, minutes - minutesSince(startedAt))} left).`,
           notes.length ? `Notes (${notes.length}):\n${lines.join('\n')}` : 'No notes yet.',
           missing.length ? `No evidence yet for: ${missing.join(', ')}.` : 'Every dimension has some evidence.',
         ].join('\n');

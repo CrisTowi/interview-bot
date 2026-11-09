@@ -376,6 +376,60 @@ textarea:focus,
   gap: 16px;
   flex-wrap: wrap;
 }
+/* Quiet on purpose: the full interview is the default; the length only matters when you're short on time. */
+.length-switch {
+  align-self: flex-start;
+  /* Sits close under the start row rather than a full .home gap away. */
+  margin-top: -16px;
+}
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+.switch:hover {
+  color: var(--ink);
+}
+.switch-track {
+  position: relative;
+  flex: none;
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  border: 1px solid var(--muted);
+  background: transparent;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+}
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition:
+    transform 150ms ease,
+    background 150ms ease;
+}
+.switch[aria-checked='true'] .switch-track {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.switch[aria-checked='true'] .switch-thumb {
+  background: var(--on-accent);
+  transform: translateX(14px);
+}
 .status {
   margin: 0;
   color: var(--muted);
@@ -517,6 +571,7 @@ textarea:focus,
   --call-fg: #f1f0ec;
   --call-muted: #a9a79f;
   --call-live: #8fbfae;
+  --call-over: #d9b25f;
   height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -554,6 +609,30 @@ textarea:focus,
 }
 .call-timer {
   font-variant-numeric: tabular-nums;
+}
+.call-timer-total {
+  opacity: 0.75;
+}
+.call-timer.over {
+  color: var(--call-over);
+}
+
+/* Thin bar along the top of the stage: how much of the planned length has gone by. */
+.call-progress {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: rgb(255 255 255 / 0.08);
+  z-index: 3;
+}
+.call-progress span {
+  display: block;
+  height: 100%;
+  background: var(--call-live);
+  transition: width 1s linear;
+}
+.call-progress.over span {
+  background: var(--call-over);
 }
 
 .tile-main {
@@ -1005,6 +1084,13 @@ textarea:focus,
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
+  }
+  .switch-track,
+  .switch-thumb {
+    transition: none;
+  }
+  .call-progress span {
+    transition: none;
   }
 }
 .dot:not(.ok):not(.warn) {
@@ -1796,7 +1882,9 @@ main:focus,
     color: HighlightText;
   }
   .dot,
-  .eq i {
+  .eq i,
+  .call-progress span,
+  .switch-thumb {
     forced-color-adjust: none;
     background: CanvasText;
   }
@@ -1807,6 +1895,12 @@ main:focus,
   }
   .meter i.on {
     background: CanvasText;
+  }
+  .switch-thumb {
+    background: CanvasText;
+  }
+  .switch[aria-checked='true'] .switch-thumb {
+    background: Highlight;
   }
   .verdict-scale li.current {
     forced-color-adjust: none;

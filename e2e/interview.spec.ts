@@ -113,3 +113,30 @@ test('the transcript panel shows the whole conversation', async ({ page }) => {
   await expect(panel).toContainText('Mi primera respuesta.');
   await expect(panel).toContainText('Segunda pregunta.');
 });
+
+test('the chosen length sets the plan, the clock and the time checks the interviewer gets', async ({ page }) => {
+  await page.clock.install();
+  const requests = await mockChat(page, agentScript);
+  await page.goto('/');
+  await page.getByRole('switch', { name: 'Ajustar a mi tiempo' }).click();
+  await page.getByRole('option', { name: /10 minutos/ }).click();
+  await page.getByRole('button', { name: 'Empezar entrevista' }).click();
+
+  await expect(page.getByText('Cuéntame de un proyecto que lideraste.')).toBeVisible();
+  expect(requests[0].system).toContain('lasts about 10 minutes: cover about 2 main questions');
+  await expect(page.getByText('/ 10:00')).toBeVisible();
+
+  await page.clock.fastForward('08:00');
+  await expect(page.getByRole('progressbar', { name: 'Tiempo de la entrevista' })).toHaveAttribute(
+    'aria-valuetext',
+    '8 de 10 minutos, quedan 2',
+  );
+  await answer(page, 'Lideré la migración.');
+  await expect(page.getByRole('heading', { name: 'Probablemente no' })).toBeVisible({ timeout: 10_000 });
+
+  // The model sees the time check after the answer; the transcript and the evaluation don't.
+  const sent = requests.find((r) => r.messages.at(-1)?.content.startsWith('Lideré'))!;
+  expect(sent.messages.at(-1)!.content).toContain('about 2 of 10 minutes left');
+  const evaluationRequest = requests.find(isEvaluation)!;
+  expect(JSON.stringify(evaluationRequest.messages)).not.toContain('Time check');
+});

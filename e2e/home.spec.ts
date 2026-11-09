@@ -24,6 +24,30 @@ test('a picker works with the keyboard and the choice persists after reload', as
   await expect(page.getByRole('button', { name: 'Nivel: Staff' })).toBeVisible();
 });
 
+test('the length stays out of the sentence until the length switch is on', async ({ page }) => {
+  const lengthSwitch = page.getByRole('switch', { name: 'Ajustar a mi tiempo' });
+  await expect(lengthSwitch).toHaveAttribute('aria-checked', 'false');
+  await expect(page.getByRole('button', { name: /^Duración/ })).toHaveCount(0);
+
+  await lengthSwitch.click();
+  // The picker appears already open, so the length can be chosen right away.
+  await expect(page.getByRole('listbox', { name: 'Duración' })).toBeFocused();
+  await page.getByRole('option', { name: /20 minutos/ }).click();
+  await expect(page.getByRole('button', { name: 'Duración: 20 minutos' })).toBeFocused();
+
+  // Choosing 30 minutes keeps the length in the sentence; only the switch removes it.
+  await page.getByRole('button', { name: 'Duración: 20 minutos' }).click();
+  await page.getByRole('option', { name: /30 minutos/ }).click();
+  await expect(page.getByRole('button', { name: 'Duración: 30 minutos' })).toBeVisible();
+
+  await page.reload();
+  await expect(lengthSwitch).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('button', { name: 'Duración: 30 minutos' })).toBeVisible();
+  await lengthSwitch.click();
+  await expect(page.getByRole('button', { name: /^Duración/ })).toHaveCount(0);
+  await expect(lengthSwitch).toBeFocused();
+});
+
 test('the interview cannot start without a role', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Puesto' }).fill('');
   await expect(page.getByRole('button', { name: 'Empezar entrevista' })).toBeDisabled();

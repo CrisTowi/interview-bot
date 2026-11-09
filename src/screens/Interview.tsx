@@ -16,20 +16,23 @@ import { useSpeechInput } from '../engines/speechInput';
 import { createVoice, type VoiceEngine } from '../engines/voice';
 import { capitalize, useT } from '../i18n';
 import { createInterviewerTools } from '../lib/interviewerTools';
-import { buildSystemPrompt, kickoffMessage } from '../lib/prompts';
+import { buildSystemPrompt, DURATIONS, kickoffMessage, plannedDuration, timeCheck } from '../lib/prompts';
 import { focusOnMount } from '../components/ui';
 import { APP_NAME, useDocumentTitle } from '../lib/title';
 import { useApp } from '../store';
 import type { ChatMessage, InterviewNote } from '../types';
 
-function useElapsed(): string {
+/** Seconds since the call started. Measured from the clock, so it stays right if the tab is throttled. */
+function useElapsedSeconds(startedAt: number): number {
   const [seconds, setSeconds] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setSeconds((s) => s + 1), 1000);
+    const id = setInterval(() => setSeconds(Math.floor((Date.now() - startedAt) / 1000)), 1000);
     return () => clearInterval(id);
-  }, []);
-  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+  }, [startedAt]);
+  return seconds;
 }
+
+const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 
 /** A simulated video call: the interviewer's tile, your tile, live captions and call controls. */
 /** How the interview ended: transcript, the interviewer's notes, and whether it ran in agent mode. */
@@ -73,7 +76,12 @@ export function Interview({ onEnd }: { onEnd: (result: InterviewResult) => void 
   mutedRef.current = muted;
   const [error, setError] = useState('');
   const [download, setDownload] = useState<number | null>(null);
-  const elapsed = useElapsed();
+  const [startedAt] = useState(() => Date.now());
+  const elapsed = useElapsedSeconds(startedAt);
+  const duration = plannedDuration(profile);
+  const planned = DURATIONS[duration].minutes;
+  /** Which time check the model has already received (see timeCheck in lib/prompts.ts). */
+  const timeStage = useRef<0 | 1 | 2>(0);
   const t = useT();
   useDocumentTitle(`${t.title.interview(interviewerName || '…')} — ${APP_NAME}`);
   const mic = useSpeechInput(profile.lang, setInput);
@@ -90,7 +98,8 @@ export function Interview({ onEnd }: { onEnd: (result: InterviewResult) => void 
     tools.current = createInterviewerTools({
       lang: profile.lang,
       notes: notes.current,
-      startedAt: Date.now(),
+      startedAt,
+      minutes: planned,
       onEnd: () => (hangUpRequested.current = true),
     });
     setThinking(true);
@@ -149,7 +158,9 @@ export function Interview({ onEnd }: { onEnd: (result: InterviewResult) => void 
     setError('');
     try {
       const useTools = !agent.current!.toolsUnsupported && system.current.includes('end_interview');
-      const text = (await agent.current!.reply(system.current, next, useTools ? tools.current : undefined)).trim();
+      // Time checks travel with the answer they were attached to, out of the transcript and the evaluation.
+      const forModel = next.map((m) => (m.context ? { ...m, content: `${m.content}\n\n${m.context}` } : m));
+      const text = (await agent.current!.reply(system.current, forModel, useTools ? tools.current : undefined)).trim();
       if (!mounted.current) return;
       // The model turned out not to support tools: switch to basic mode for the rest of the call.
       if (useTools && agent.current!.toolsUnsupported) {
@@ -174,7 +185,9 @@ export function Interview({ onEnd }: { onEnd: (result: InterviewResult) => void 
     if (!text || thinking) return;
     voice.current?.stop();
     setInput('');
-    advance([...messages, { role: 'user', content: text }]);
+    const check = timeCheck((Date.now() - startedAt) / 60_000, duration, timeStage.current);
+    if (check) timeStage.current = check.stage;
+    advance([...messages, { role: 'user', content: text, context: check?.note }]);
   }
 
   function toggleMic() {
@@ -261,8 +274,21 @@ export function Interview({ onEnd }: { onEnd: (result: InterviewResult) => void 
                   </span>
                 </span>
               )}
-              <span className="call-timer">{elapsed}</span>
+              <span className={elapsed >= planned * 60 ? 'call-timer over' : 'call-timer'}>
+                {clock(elapsed)} <span className="call-timer-total">/ {planned}:00</span>
+              </span>
             </span>
+          </div>
+          <div
+            className={elapsed >= planned * 60 ? 'call-progress over' : 'call-progress'}
+            role="progressbar"
+            aria-label={t.interview.timeLabel}
+            aria-valuemin={0}
+            aria-valuemax={planned}
+            aria-valuenow={Math.min(planned, Math.floor(elapsed / 60))}
+            aria-valuetext={t.interview.timeValue(Math.floor(elapsed / 60), planned)}
+          >
+            <span style={{ width: `${Math.min(100, (elapsed / (planned * 60)) * 100)}%` }} />
           </div>
 
           <div className={`tile-main ${speaking ? 'speaking' : ''}`}>

@@ -1,13 +1,15 @@
+import { useState } from 'react';
 import { InlinePicker, type PickerOption } from '../components/InlinePicker';
 import { ScoreBadge, useEngineReady } from '../components/ui';
 import { capitalize, useT } from '../i18n';
 import { APP_NAME, useDocumentTitle } from '../lib/title';
 import { useApp } from '../store';
-import type { Company, Focus, SessionSummary, Seniority } from '../types';
+import type { Company, Duration, Focus, SessionSummary, Seniority } from '../types';
 
 const SENIORITIES: Seniority[] = ['Junior', 'Mid', 'Senior', 'Staff'];
 const COMPANIES: Company[] = ['Amazon', 'Google', 'Meta', 'Startup'];
 const FOCUSES: Focus[] = ['mixed', 'leadership', 'conflict', 'failure', 'impact', 'ambiguity'];
+const DURATIONS: Duration[] = ['quick', 'standard', 'full'];
 const PROVIDER_LABELS = { openai: 'OpenAI', anthropic: 'Anthropic', gemini: 'Gemini', openrouter: 'OpenRouter' };
 
 interface Props {
@@ -22,8 +24,12 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
   const t = useT();
   const checking = settings.llm === 'local' && localStatus === 'checking';
   useDocumentTitle(`${APP_NAME} — ${t.title.home}`);
+  // The full interview is the default and goes unsaid; the switch adds the length to the sentence.
+  const chooseLength = !!profile.chooseLength;
+  const [lengthJustAdded, setLengthJustAdded] = useState(false);
 
-  const { seniorityHints, companyLabels, companyHints, focusLabels, focusHints } = t.options;
+  const { seniorityHints, companyLabels, companyHints, focusLabels, focusHints, durationLabels, durationHints } =
+    t.options;
   const seniorityOptions: PickerOption<Seniority>[] = SENIORITIES.map((v) => ({
     value: v,
     label: v,
@@ -39,6 +45,11 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
     label: focusLabels[v],
     hint: focusHints[v],
   }));
+  const durationOptions: PickerOption<Duration>[] = DURATIONS.map((v) => ({
+    value: v,
+    label: durationLabels[v],
+    hint: durationHints[v],
+  }));
 
   let status: string;
   if (settings.llm === 'cloud') {
@@ -51,7 +62,7 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
     status = t.home.usingLocal;
   }
 
-  const [beforeLevel, levelToRole, roleToCompany, companyToFocus, afterFocus] = t.home.sentence;
+  const [beforeLevel, levelToRole, roleToCompany, companyToFocus, focusToDuration, after] = t.home.sentence;
 
   return (
     <main className="home" id="main" tabIndex={-1}>
@@ -88,7 +99,19 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
           options={focusOptions}
           onChange={(focus) => setProfile({ focus })}
         />
-        {afterFocus}
+        {chooseLength && (
+          <>
+            {focusToDuration}{' '}
+            <InlinePicker
+              label={t.home.duration}
+              value={profile.duration}
+              options={durationOptions}
+              onChange={(duration) => setProfile({ duration })}
+              openOnMount={lengthJustAdded}
+            />
+          </>
+        )}
+        {after}
       </p>
 
       <div className="start">
@@ -107,6 +130,21 @@ export function Home({ onStart, onOpenSettings, onViewSummary }: Props) {
           </button>
         </p>
       </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={chooseLength}
+        className="switch length-switch"
+        onClick={() => {
+          setLengthJustAdded(!chooseLength);
+          setProfile({ chooseLength: !chooseLength });
+        }}
+      >
+        <span className="switch-track" aria-hidden="true">
+          <span className="switch-thumb" />
+        </span>
+        {t.home.chooseLength}
+      </button>
 
       {history.length > 0 && (
         <section className="history">

@@ -37,6 +37,8 @@ const defaultProfile: Profile = {
   seniority: 'Senior',
   company: 'Amazon',
   focus: 'mixed',
+  duration: 'full',
+  chooseLength: false,
   background: '',
   cvSummary: '',
   salary: '',
