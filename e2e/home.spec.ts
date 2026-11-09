@@ -25,7 +25,7 @@ test('a picker works with the keyboard and the choice persists after reload', as
 });
 
 test('the length stays out of the sentence until the length switch is on', async ({ page }) => {
-  const lengthSwitch = page.getByRole('switch', { name: 'Elegir duración' });
+  const lengthSwitch = page.getByRole('switch', { name: 'Ajustar a mi tiempo' });
   await expect(lengthSwitch).toHaveAttribute('aria-checked', 'false');
   await expect(page.getByRole('button', { name: /^Duración/ })).toHaveCount(0);
 

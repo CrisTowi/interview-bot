@@ -118,7 +118,7 @@ test('the chosen length sets the plan, the clock and the time checks the intervi
   await page.clock.install();
   const requests = await mockChat(page, agentScript);
   await page.goto('/');
-  await page.getByRole('switch', { name: 'Elegir duración' }).click();
+  await page.getByRole('switch', { name: 'Ajustar a mi tiempo' }).click();
   await page.getByRole('option', { name: /10 minutos/ }).click();
   await page.getByRole('button', { name: 'Empezar entrevista' }).click();
 
